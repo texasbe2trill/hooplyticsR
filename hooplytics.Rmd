@@ -1,0 +1,56 @@
+---
+title: "hooplytics"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(nbastatR)
+library(ggplot2)
+library(lintr)
+library(dplyr)
+
+```
+
+## NBA Player Data
+```{r warning=FALSE}
+# A dynamic list of NBA players
+players <- c("LeBron James", "Kevin Durant", "Stephen Curry",
+             "Giannis Antetokounmpo", "Kawhi Leonard")
+
+# Get player data for the past three seasons
+player_data <- game_logs(seasons = c(2023, 2024, 2025),
+                         result_types = "player",
+                         Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 2))
+```
+
+## Average Points Per Game
+```{r}
+# Function to retrieve the average points per game for a list of players
+get_avg_points_per_game <- function(player_names) {
+  # Filter the player data to only include the players in the list
+  player_data_filtered <- player_data %>%
+    filter(.data$namePlayer %in% player_names)
+
+  # Calculate the average points per game for each player
+  avg_points_per_game <- player_data_filtered %>%
+    group_by(.data$namePlayer) %>%
+    summarize(avg_points_per_game = round(mean(.data$pts), 2))
+
+  return(avg_points_per_game)
+}
+# Return the average points per game for the list of players
+get_avg_points_per_game(players)
+
+# Average Points Per Game Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = pts, fill = namePlayer)) +
+  geom_histogram(binwidth = 5, position = "dodge") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Average Points Per Game 2022 - 2025",
+       x = "Points Per Game",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```

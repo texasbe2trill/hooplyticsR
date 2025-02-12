@@ -16,12 +16,13 @@ always_allow_html: true
 ```{r setup, include=FALSE}
 library(nbastatR)
 library(ggplot2)
-library(lintr)
 library(dplyr)
 library(caret)
 library(randomForest)
 library(glue)
 library(kableExtra)
+library(devtools)
+library(renv)
 ```
 
 # Introduction

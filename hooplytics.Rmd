@@ -232,7 +232,7 @@ player_summary_table
 
 # Data Visualization
 
-This section uses visualizations to highlight key player performance statistics and their variability. It explores the distribution and consistency of metrics like scoring, rebounds, assists, three-pointers, turnovers, and fantasy scores. Examining the overall distribution and standard deviation provides insights into player consistency and overall contributions. The visualizations reveal trends and patterns, helping identify more consistent players and aid data-driven decision-making.
+This section uses visualizations to highlight key player performance statistics and their variability. It explores the distribution and consistency of metrics like scoring, rebounds, assists, three-pointers, turnovers, and fantasy scores. Examining the overall distribution provides insights into player consistency and overall contributions. The visualizations reveal trends and patterns, helping identify more consistent players and aid data-driven decision-making.
 
 ## Total Points Distribution
 
@@ -249,25 +249,6 @@ player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
-```
-
-## Standard Deviation of Points
-
-```{r echo=FALSE}
-# Standard Deviation of Points Visualization
-player_stats_df %>%
-  arrange(desc(SD_Points)) %>%
-  ggplot(aes(x = reorder(Player, SD_Points), y = SD_Points, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Points",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
-
 ```
 
 ## Total Rebounds Distribution
@@ -287,24 +268,6 @@ player_data %>%
   theme(legend.position = "none")
 ```
 
-## Standard Deviation of Rebounds
-
-```{r echo=FALSE}
-# Standard Deviation of Rebounds Visualization
-player_stats_df %>%
-  arrange(desc(SD_Rebounds)) %>%
-  ggplot(aes(x = reorder(Player, SD_Rebounds), y = SD_Rebounds, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Rebounds",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
-```
-
 ## Total Assists Distribution
 
 ```{r echo=FALSE}
@@ -320,24 +283,6 @@ player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
-```
-
-## Standard Deviation of Assists
-
-```{r echo=FALSE}
-# Standard Deviation of Assists Visualization
-player_stats_df %>%
-  arrange(desc(SD_Assists)) %>%
-  ggplot(aes(x = reorder(Player, SD_Assists), y = SD_Assists, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Assists",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
 ```
 
 ## Total Points + Rebounds + Assists Distribution
@@ -357,24 +302,6 @@ player_data %>%
   theme(legend.position = "none")
 ```
 
-## Standard Deviation of Points + Rebounds + Assists
-
-```{r echo=FALSE}
-# Standard Deviation of Points + Rebounds + Assists Visualization
-player_stats_df %>%
-  arrange(desc(SD_Pts_Rebs_Assists)) %>%
-  ggplot(aes(x = reorder(Player, SD_Pts_Rebs_Assists), y = SD_Pts_Rebs_Assists, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Points + Rebounds + Assists",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
-```
-
 ## Total Three-Pointers Made Distribution
 
 ```{r echo=FALSE}
@@ -390,24 +317,6 @@ player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
-```
-
-## Standard Deviation of Three-Pointers Made
-
-```{r echo=FALSE}
-# Standard Deviation of Three-Pointers Made Visualization
-player_stats_df %>%
-  arrange(desc(SD_Three_Pts_Made)) %>%
-  ggplot(aes(x = reorder(Player, SD_Three_Pts_Made), y = SD_Three_Pts_Made, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Three-Pointers Made",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
 ```
 
 ## Total Steals + Blocks Distribution
@@ -427,24 +336,6 @@ player_data %>%
   theme(legend.position = "none")
 ```
 
-## Standard Deviation of Steals + Blocks
-
-```{r echo=FALSE}
-# Standard Deviation of Steals + Blocks Visualization
-player_stats_df %>%
-  arrange(desc(SD_Steal_Blocks)) %>%
-  ggplot(aes(x = reorder(Player, SD_Steal_Blocks), y = SD_Steal_Blocks, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Steals + Blocks",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
-```
-
 ## Total Turnovers Distribution
 
 ```{r echo=FALSE}
@@ -460,24 +351,6 @@ player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
-```
-
-## Standard Deviation of Turnovers
-
-```{r echo=FALSE}
-# Standard Deviation of Turnovers Visualization
-player_stats_df %>%
-  arrange(desc(SD_Turnovers)) %>%
-  ggplot(aes(x = reorder(Player, SD_Turnovers), y = SD_Turnovers, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Turnovers",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
 ```
 
 ## Total Fantasy Score Distribution
@@ -497,23 +370,6 @@ player_data %>%
   theme(legend.position = "none")
 ```
 
-## Standard Deviation of Fantasy Score
-
-```{r echo=FALSE}
-# Standard Deviation of Fantasy Score Visualization
-player_stats_df %>%
-  arrange(desc(SD_Fantasy_Score)) %>%
-  ggplot(aes(x = reorder(Player, SD_Fantasy_Score), y = SD_Fantasy_Score, fill = Player)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Standard Deviation of Fantasy Score",
-       x = "Player",
-       y = "Standard Deviation",
-       caption = "High SD = Inconsistent Performance,
-       Low SD = Consistent Performance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "none")
-```
 
 ```{r include=FALSE}
 # Machine Learning

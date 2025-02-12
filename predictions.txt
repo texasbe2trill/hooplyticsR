@@ -1,44 +1,44 @@
 
-Player: Kevin Durant | Best Prediction: 37.8 | Model: fantasy_score_model | Threshold: 40 | Decision: Below Threshold 
+Player: Kevin Durant | Best Prediction: 37.47 | Model: fantasy_score_model | Threshold: 40 | Decision: Below Threshold 
   All Predictions:
-    Model: points_model | Prediction: 26.96 | Threshold: 20 | Decision: Above Threshold 
-    Model: rebounds_model | Prediction: 5.26 | Threshold: 10 | Decision: Below Threshold 
-    Model: assists_model | Prediction: 4.84 | Threshold: 5 | Decision: Below Threshold 
-    Model: total_pra_model | Prediction: 32.79 | Threshold: 30 | Decision: Below Threshold 
-    Model: threepm_model | Prediction: 2.67 | Threshold: 2 | Decision: Above Threshold 
-    Model: stl_blk_model | Prediction: 1.22 | Threshold: 3 | Decision: Below Threshold 
-    Model: turnovers_model | Prediction: 2.39 | Threshold: 3 | Decision: Below Threshold 
-    Model: fantasy_score_model | Prediction: 37.8 | Threshold: 40 | Decision: Below Threshold 
+    Model: points_model | Prediction: 26.61 | Threshold: 20 | Decision: Above Threshold 
+    Model: rebounds_model | Prediction: 5.36 | Threshold: 10 | Decision: Below Threshold 
+    Model: assists_model | Prediction: 4.88 | Threshold: 5 | Decision: Below Threshold 
+    Model: total_pra_model | Prediction: 32.89 | Threshold: 30 | Decision: Below Threshold 
+    Model: threepm_model | Prediction: 2.57 | Threshold: 2 | Decision: Above Threshold 
+    Model: stl_blk_model | Prediction: 1.24 | Threshold: 3 | Decision: Below Threshold 
+    Model: turnovers_model | Prediction: 2.33 | Threshold: 3 | Decision: Below Threshold 
+    Model: fantasy_score_model | Prediction: 37.47 | Threshold: 40 | Decision: Below Threshold 
 
-Player: Joel Embiid | Best Prediction: 21.67 | Model: points_model | Threshold: 20 | Decision: Below Threshold 
+Player: Joel Embiid | Best Prediction: 21.79 | Model: points_model | Threshold: 20 | Decision: Below Threshold 
   All Predictions:
-    Model: points_model | Prediction: 21.67 | Threshold: 20 | Decision: Below Threshold 
-    Model: rebounds_model | Prediction: 4.2 | Threshold: 10 | Decision: Below Threshold 
-    Model: assists_model | Prediction: 3.88 | Threshold: 5 | Decision: Below Threshold 
-    Model: total_pra_model | Prediction: 15.5 | Threshold: 30 | Decision: Below Threshold 
-    Model: threepm_model | Prediction: 0.75 | Threshold: 2 | Decision: Below Threshold 
-    Model: stl_blk_model | Prediction: 0.75 | Threshold: 3 | Decision: Below Threshold 
-    Model: turnovers_model | Prediction: 2.11 | Threshold: 3 | Decision: Below Threshold 
-    Model: fantasy_score_model | Prediction: 19.05 | Threshold: 40 | Decision: Below Threshold 
+    Model: points_model | Prediction: 21.79 | Threshold: 20 | Decision: Below Threshold 
+    Model: rebounds_model | Prediction: 4.04 | Threshold: 10 | Decision: Below Threshold 
+    Model: assists_model | Prediction: 4.03 | Threshold: 5 | Decision: Below Threshold 
+    Model: total_pra_model | Prediction: 15.21 | Threshold: 30 | Decision: Below Threshold 
+    Model: threepm_model | Prediction: 0.78 | Threshold: 2 | Decision: Below Threshold 
+    Model: stl_blk_model | Prediction: 0.72 | Threshold: 3 | Decision: Below Threshold 
+    Model: turnovers_model | Prediction: 2.1 | Threshold: 3 | Decision: Below Threshold 
+    Model: fantasy_score_model | Prediction: 18.93 | Threshold: 40 | Decision: Below Threshold 
 
-Player: Donovan Mitchell | Best Prediction: 52.77 | Model: fantasy_score_model | Threshold: 40 | Decision: Above Threshold 
+Player: Donovan Mitchell | Best Prediction: 52.67 | Model: fantasy_score_model | Threshold: 40 | Decision: Above Threshold 
   All Predictions:
-    Model: points_model | Prediction: 28.74 | Threshold: 20 | Decision: Above Threshold 
-    Model: rebounds_model | Prediction: 5.42 | Threshold: 10 | Decision: Below Threshold 
-    Model: assists_model | Prediction: 4.98 | Threshold: 5 | Decision: Below Threshold 
-    Model: total_pra_model | Prediction: 46.18 | Threshold: 30 | Decision: Above Threshold 
+    Model: points_model | Prediction: 28.66 | Threshold: 20 | Decision: Above Threshold 
+    Model: rebounds_model | Prediction: 5.56 | Threshold: 10 | Decision: Below Threshold 
+    Model: assists_model | Prediction: 5.02 | Threshold: 5 | Decision: Below Threshold 
+    Model: total_pra_model | Prediction: 46.41 | Threshold: 30 | Decision: Above Threshold 
     Model: threepm_model | Prediction: 1.78 | Threshold: 2 | Decision: Below Threshold 
-    Model: stl_blk_model | Prediction: 1.25 | Threshold: 3 | Decision: Below Threshold 
-    Model: turnovers_model | Prediction: 3.2 | Threshold: 3 | Decision: Below Threshold 
-    Model: fantasy_score_model | Prediction: 52.77 | Threshold: 40 | Decision: Above Threshold 
+    Model: stl_blk_model | Prediction: 1.18 | Threshold: 3 | Decision: Below Threshold 
+    Model: turnovers_model | Prediction: 3.16 | Threshold: 3 | Decision: Below Threshold 
+    Model: fantasy_score_model | Prediction: 52.67 | Threshold: 40 | Decision: Above Threshold 
 
-Player: Jalen Brunson | Best Prediction: 30.82 | Model: fantasy_score_model | Threshold: 40 | Decision: Below Threshold 
+Player: Jalen Brunson | Best Prediction: 30.83 | Model: fantasy_score_model | Threshold: 40 | Decision: Below Threshold 
   All Predictions:
-    Model: points_model | Prediction: 25.91 | Threshold: 20 | Decision: Above Threshold 
-    Model: rebounds_model | Prediction: 5.57 | Threshold: 10 | Decision: Below Threshold 
-    Model: assists_model | Prediction: 5.21 | Threshold: 5 | Decision: Below Threshold 
-    Model: total_pra_model | Prediction: 27.56 | Threshold: 30 | Decision: Below Threshold 
-    Model: threepm_model | Prediction: 1.38 | Threshold: 2 | Decision: Below Threshold 
-    Model: stl_blk_model | Prediction: 1.16 | Threshold: 3 | Decision: Below Threshold 
-    Model: turnovers_model | Prediction: 2.16 | Threshold: 3 | Decision: Below Threshold 
-    Model: fantasy_score_model | Prediction: 30.82 | Threshold: 40 | Decision: Below Threshold 
+    Model: points_model | Prediction: 25.88 | Threshold: 20 | Decision: Above Threshold 
+    Model: rebounds_model | Prediction: 5.68 | Threshold: 10 | Decision: Below Threshold 
+    Model: assists_model | Prediction: 5.11 | Threshold: 5 | Decision: Below Threshold 
+    Model: total_pra_model | Prediction: 27.77 | Threshold: 30 | Decision: Below Threshold 
+    Model: threepm_model | Prediction: 1.47 | Threshold: 2 | Decision: Below Threshold 
+    Model: stl_blk_model | Prediction: 1.24 | Threshold: 3 | Decision: Below Threshold 
+    Model: turnovers_model | Prediction: 2.11 | Threshold: 3 | Decision: Below Threshold 
+    Model: fantasy_score_model | Prediction: 30.83 | Threshold: 40 | Decision: Below Threshold 

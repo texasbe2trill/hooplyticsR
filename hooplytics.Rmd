@@ -32,8 +32,7 @@ hooplyticsR, a data-driven project, analyzes basketball player performance using
 ```{r warning=FALSE, include=FALSE}
 # NBA Player Data
 # A dynamic list of NBA players
-players <- c("Kevin Durant", "Joel Embiid",
-             "Jalen Brunson", "Donovan Mitchell")
+players <- c("Klay Thompson", "Anthony Edwards", "Austin Reaves")
 
 # Get player data for the past three seasons
 player_data <- game_logs(seasons = c(2015:2025),
@@ -60,7 +59,7 @@ This section provides a detailed statistical overview of various basketball play
 
 This summary is generated for each player, providing a clear and concise view of their performance and variability over time. The summary can be used to identify trends, strengths, and areas for improvement, and can be easily included in reports or further analysis.
 
-```{r echo=FALSE}
+```{r echo=FALSE, results='asis'}
 # Function to retrieve the average points per game for a list of players
 get_avg_player_stats <- function(player_names) {
   # Filter the player data to only include the players in the list
@@ -140,38 +139,34 @@ player_stats_df <- data.frame(get_avg_player_stats(players))
 
 generate_player_summary <- function(player_stats_df) {
   summaries <- apply(player_stats_df, 1, function(row) {
-    glue("
-      ### **{row['Player']}**
-
-      **Games Played:** {row['Games_Played']}
-
-      **Average Points:** {row['Points']}
-      **Average Rebounds:** {row['Rebounds']}
-      **Average Assists:** {row['Assists']}
-      **Average Points + Rebounds + Assists (PRA):** {row['Pts_Rebs_Assists']}
-
-      **Average 3-Point Field Goals Made:** {row['Three_Pts_Made']}
-      **Average Steals + Blocks:** {row['Steal_Blocks']}
-      **Average Turnovers:** {row['Turnovers']}
-      **Average Fantasy Score:** {row['Fantasy_Score']}
-
-      **Consistency (Standard Deviation):**
-      - **Points:** {row['SD_Points']}
-      - **Rebounds:** {row['SD_Rebounds']}
-      - **Assists:** {row['SD_Assists']}
-      - **PRA (Points + Rebounds + Assists):** {row['SD_Pts_Rebs_Assists']}
-      - **3-Point Field Goals Made:** {row['SD_Three_Pts_Made']}
-      - **Steals + Blocks:** {row['SD_Steal_Blocks']}
-      - **Turnovers:** {row['SD_Turnovers']}
-      - **Fantasy Score:** {row['SD_Fantasy_Score']}
-
-      *The lower the standard deviation (SD), the more consistent the player is across games. A high SD indicates variability, suggesting the player's performance is less predictable. For instance, a low SD in points means the player typically scores within a narrow range, while a high SD might indicate fluctuating performance.*
-
-      ----
-    ")
+   glue(
+      "### {row['Player']}\n\n",
+      "**Games Played:** {row['Games_Played']}\n\n",
+      "**Average Points:** {row['Points']}  \n",
+      "**Average Rebounds:** {row['Rebounds']}  \n",
+      "**Average Assists:** {row['Assists']}  \n",
+      "**Average Points + Rebounds + Assists (PRA):** {row['Pts_Rebs_Assists']}\n\n",
+      "**Average 3-Point Field Goals Made:** {row['Three_Pts_Made']}  \n",
+      "**Average Steals + Blocks:** {row['Steal_Blocks']}  \n",
+      "**Average Turnovers:** {row['Turnovers']}  \n",
+      "**Average Fantasy Score:** {row['Fantasy_Score']}\n\n",
+      "**Consistency (Standard Deviation):**\n",
+      "- **Points:** {row['SD_Points']}  \n",
+      "- **Rebounds:** {row['SD_Rebounds']}  \n",
+      "- **Assists:** {row['SD_Assists']}  \n",
+      "- **PRA (Points + Rebounds + Assists):** {row['SD_Pts_Rebs_Assists']}  \n",
+      "- **3-Point Field Goals Made:** {row['SD_Three_Pts_Made']}  \n",
+      "- **Steals + Blocks:** {row['SD_Steal_Blocks']}  \n",
+      "- **Turnovers:** {row['SD_Turnovers']}  \n",
+      "- **Fantasy Score:** {row['SD_Fantasy_Score']}\n\n",
+      "*The lower the standard deviation (SD), the more consistent the player is across games.  \n",
+      "A high SD indicates variability, suggesting the player's performance is less predictable.  \n",
+      "For instance, a low SD in points means the player typically scores within a narrow range,  \n",
+      "while a high SD might indicate fluctuating performance.*\n\n----\n\n"
+    )
   })
 
-  return(paste(summaries, collapse = "\n"))
+  return(paste(summaries, collapse = "\n\n"))
 }
 
 # Call the function to get the summary output
@@ -375,7 +370,7 @@ player_data %>%
 ```{r include=FALSE}
 # Machine Learning
 
-# Function to train Random Forest models for betting categories (PrizePicks)
+# Function to train Random Forest models for each category
 train_rf_models <- function(player_data, player_names) {
   # Filter the player data to only include the players in the list
   player_data_filtered <- player_data %>%
@@ -388,7 +383,7 @@ train_rf_models <- function(player_data, player_names) {
       threepm = fg3m,
       stl_blk = stl + blk,
       turnovers = tov,
-      fantasy_score = pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 + blk * 3 - tov * 1
+      fantasy_score = pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 + blk * 3 - tov * (-1)
     )
 
   # Remove rows with missing data
@@ -460,13 +455,13 @@ evaluate_rf_models <- function(models, test_data) {
 predictions <- evaluate_rf_models(models, test_data)
 ```
 
-# **Predictions**
+# Predictions
 
 In this section, we explore machine learning to predict basketball player performance using historical data. We aim to forecast key statistics like points, rebounds, assists, and fantasy scores with precision. These predictions provide valuable insights for fantasy basketball decisions, player evaluation, and team strategies. Whether drafting or analyzing game performance, our data-driven predictions give you a competitive edge.
 
-```{r echo=FALSE}
-# Function to evaluate models and make fantasy decisions
-make_fantasy_decisions_by_model <- function(predictions, test_data, thresholds, confidence_margin = 0.1) {
+```{r echo=FALSE, results='asis'}
+# Function to evaluate models and make fantasy decisions based on over or under
+make_fantasy_decisions_by_model <- function(predictions, test_data, player_thresholds = NULL, player_5_game_averages = NULL, confidence_margin = 0.1, weight_5_game_avg = 0.7) {
   # Create an empty list to store results by player
   results_by_player <- list()
 
@@ -477,23 +472,49 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, thresholds, 
     # Initialize variables to track the best prediction for the player
     best_prediction <- -Inf
     best_model <- NULL
-    best_threshold <- NULL
     best_decision <- NULL
     all_predictions <- list()  # To store all predictions for this player
 
     # Loop over each model to evaluate the prediction for the current player
     for (model_name in names(predictions)) {
       prediction <- predictions[[model_name]][i]
-      threshold <- thresholds[[model_name]]
 
-      # Decision based on prediction above or below threshold and margin
-      decision <- ifelse(prediction > threshold * (1 + confidence_margin), "Above Threshold", "Below Threshold")
+      # Calculate a threshold based on player-specific thresholds or model predictions
+      threshold <- if (!is.null(player_thresholds) && 
+                       player_name %in% names(player_thresholds) && 
+                       model_name %in% names(player_thresholds[[player_name]])) {
+        player_thresholds[[player_name]][[model_name]]
+      } else {
+        mean(predictions[[model_name]], na.rm = TRUE)  # Default to mean of all predictions
+      }
+
+      # Incorporate 5-game average with additional weight if available
+      if (!is.null(player_5_game_averages) && 
+          player_name %in% names(player_5_game_averages) && 
+          model_name %in% names(player_5_game_averages[[player_name]])) {
+        five_game_average <- player_5_game_averages[[player_name]][[model_name]]
+        
+        # Weighted average between model threshold and 5-game average
+        weighted_threshold <- (weight_5_game_avg * five_game_average) + ((1 - weight_5_game_avg) * threshold)
+      } else {
+        five_game_average <- NA  # Default to NA if no 5-game average is available
+        weighted_threshold <- threshold  # If no 5-game average, use the threshold as is
+      }
+
+      # Decision based on prediction above or below weighted threshold and margin
+      adjusted_threshold <- weighted_threshold * (1 + confidence_margin)  # Adjust threshold based on confidence margin
+
+      # Ensure the threshold is used to make the decision
+      if (prediction > adjusted_threshold) {
+        decision <- "More"
+      } else {
+        decision <- "Less"
+      }
 
       # Track the best prediction across models for the player
       if (prediction > best_prediction) {
         best_prediction <- prediction
         best_model <- model_name
-        best_threshold <- threshold
         best_decision <- decision
       }
 
@@ -501,8 +522,9 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, thresholds, 
       all_predictions[[model_name]] <- list(
         model = model_name,
         prediction = round(prediction, 2),
-        threshold = threshold,
-        decision = decision
+        threshold = round(weighted_threshold, 2),  # Store the calculated weighted threshold
+        decision = decision,
+        five_game_average = round(five_game_average, 2)  # Include the 5-game average
       )
     }
 
@@ -511,7 +533,6 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, thresholds, 
       player_name = player_name,
       best_prediction = round(best_prediction, 2),
       best_model = best_model,
-      best_threshold = best_threshold,
       best_decision = best_decision,
       all_predictions = all_predictions
     )
@@ -520,38 +541,58 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, thresholds, 
   # Print the best prediction for each player along with all predictions
   for (player_name in names(results_by_player)) {
     result <- results_by_player[[player_name]]
-    cat("\nPlayer:", result$player_name,
-        "| Best Prediction:", result$best_prediction,
-        "| Model:", result$best_model,
-        "| Threshold:", result$best_threshold,
-        "| Decision:", result$best_decision, "\n")
-
-    cat("  All Predictions:\n")
-    # Print all predictions for the player
+    
+    # Format the player's results
+    player_result <- glue::glue(
+      "### **Player: {result$player_name}**\n",
+      "**Best Prediction**: {result$best_prediction} | Model: {result$best_model} | Decision: {result$best_decision}\n\n",
+      "<u>All Predictions:</u><br>"  # Add HTML <br> for line breaks
+    )
+    
+    # Append all individual model predictions for the player
     for (prediction in result$all_predictions) {
-      cat("    Model:", prediction$model,
-          "| Prediction:", prediction$prediction,
-          "| Threshold:", prediction$threshold,
-          "| Decision:", prediction$decision, "\n")
+      player_result <- glue::glue(
+        player_result,
+        "Model: **{prediction$model}** | Prediction: {prediction$prediction} | Threshold: {prediction$threshold} | 5-Game Avg: {prediction$five_game_average} | Decision: {prediction$decision}<br>"
+      )
     }
+    
+    # Use `cat` with `asis` for R Markdown compatibility to print results
+    cat(player_result, "\n\n", sep = "")
   }
 }
 
-# Define the threshold for each model
-thresholds <- list(
-  points_model = 20,
-  rebounds_model = 10,
-  assists_model = 5,
-  total_pra_model = 30,
-  threepm_model = 2,
-  stl_blk_model = 3,
-  turnovers_model = 3,
-  fantasy_score_model = 40
+# Example Player-Specific Thresholds
+player_thresholds <- list(
+  
+  "Austin Reaves" = list(
+    points_model = 19.5
+  ),
+  "Anthony Edwards" = list(
+    points_model = 30.5
+  ),
+  "Klay Thompson" = list(
+    points_model = 15
+  )
 )
 
-# Make fantasy decisions based on the predictions
-make_fantasy_decisions_by_model(predictions, test_data, thresholds)
+# Example 5-game averages
+player_5_game_averages <- list(
+  
+  "Austin Reaves" = list(
+    points_model = round(mean(c(22, 45, 23, 20, 27)), 2)
+  ),
+  "Anthony Edwards" = list(
+    points_model = round(mean(c(36, 21, 49, 41, 44)), 2)
+  ),
+  "Klay Thompson" = list(
+    points_model = round(mean(c(2, 12, 25, 13, 19)), 2)
+  )
+)
+
+# Make fantasy decisions based on the predictions and 5-game averages
+make_fantasy_decisions_by_model(predictions, test_data, player_thresholds, player_5_game_averages)
 
 # Write the predictions to a text file
-writeLines(capture.output(make_fantasy_decisions_by_model(predictions, test_data, thresholds)), "predictions.txt")
+writeLines(capture.output(make_fantasy_decisions_by_model(predictions, test_data, player_thresholds)), "data/predictions.txt")
 ```

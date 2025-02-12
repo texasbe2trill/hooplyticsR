@@ -1,44 +1,15 @@
+### **Player: Klay Thompson**
+**Best Prediction**: 19.04 | Model: points_model | Decision: More
 
-Player: Kevin Durant | Best Prediction: 37.68 | Model: fantasy_score_model | Threshold: 40 | Decision: Below Threshold
-  All Predictions:
-    Model: points_model | Prediction: 26.63 | Threshold: 20 | Decision: Above Threshold
-    Model: rebounds_model | Prediction: 5.38 | Threshold: 10 | Decision: Below Threshold
-    Model: assists_model | Prediction: 4.87 | Threshold: 5 | Decision: Below Threshold
-    Model: total_pra_model | Prediction: 32.84 | Threshold: 30 | Decision: Below Threshold
-    Model: threepm_model | Prediction: 2.46 | Threshold: 2 | Decision: Above Threshold
-    Model: stl_blk_model | Prediction: 1.27 | Threshold: 3 | Decision: Below Threshold
-    Model: turnovers_model | Prediction: 2.34 | Threshold: 3 | Decision: Below Threshold
-    Model: fantasy_score_model | Prediction: 37.68 | Threshold: 40 | Decision: Below Threshold
+<u>All Predictions:</u><br>Model: **points_model** | Prediction: 19.04 | Threshold: 15 | 5-Game Avg: NA | Decision: More<br>Model: **rebounds_model** | Prediction: 4.1 | Threshold: 4.37 | 5-Game Avg: NA | Decision: Less<br>Model: **assists_model** | Prediction: 3.19 | Threshold: 3.55 | 5-Game Avg: NA | Decision: Less<br>Model: **total_pra_model** | Prediction: 12.39 | Threshold: 28.65 | 5-Game Avg: NA | Decision: Less<br>Model: **threepm_model** | Prediction: 0.97 | Threshold: 2.78 | 5-Game Avg: NA | Decision: Less<br>Model: **stl_blk_model** | Prediction: 0.78 | Threshold: 1.5 | 5-Game Avg: NA | Decision: Less<br>Model: **turnovers_model** | Prediction: 1.39 | Threshold: 2.02 | 5-Game Avg: NA | Decision: Less<br>Model: **fantasy_score_model** | Prediction: 18.24 | Threshold: 37.52 | 5-Game Avg: NA | Decision: Less<br>
 
-Player: Joel Embiid | Best Prediction: 55.07 | Model: fantasy_score_model | Threshold: 40 | Decision: Above Threshold
-  All Predictions:
-    Model: points_model | Prediction: 29.35 | Threshold: 20 | Decision: Above Threshold
-    Model: rebounds_model | Prediction: 6.75 | Threshold: 10 | Decision: Below Threshold
-    Model: assists_model | Prediction: 4.01 | Threshold: 5 | Decision: Below Threshold
-    Model: total_pra_model | Prediction: 41.18 | Threshold: 30 | Decision: Above Threshold
-    Model: threepm_model | Prediction: 3.06 | Threshold: 2 | Decision: Above Threshold
-    Model: stl_blk_model | Prediction: 4.06 | Threshold: 3 | Decision: Above Threshold
-    Model: turnovers_model | Prediction: 3.3 | Threshold: 3 | Decision: Above Threshold
-    Model: fantasy_score_model | Prediction: 55.07 | Threshold: 40 | Decision: Above Threshold
+### **Player: Anthony Edwards**
+**Best Prediction**: 61.23 | Model: fantasy_score_model | Decision: More
 
-Player: Donovan Mitchell | Best Prediction: 33.8 | Model: fantasy_score_model | Threshold: 40 | Decision: Below Threshold
-  All Predictions:
-    Model: points_model | Prediction: 22.86 | Threshold: 20 | Decision: Above Threshold
-    Model: rebounds_model | Prediction: 4.56 | Threshold: 10 | Decision: Below Threshold
-    Model: assists_model | Prediction: 4.76 | Threshold: 5 | Decision: Below Threshold
-    Model: total_pra_model | Prediction: 28.91 | Threshold: 30 | Decision: Below Threshold
-    Model: threepm_model | Prediction: 2.26 | Threshold: 2 | Decision: Above Threshold
-    Model: stl_blk_model | Prediction: 1.18 | Threshold: 3 | Decision: Below Threshold
-    Model: turnovers_model | Prediction: 2.51 | Threshold: 3 | Decision: Below Threshold
-    Model: fantasy_score_model | Prediction: 33.8 | Threshold: 40 | Decision: Below Threshold
+<u>All Predictions:</u><br>Model: **points_model** | Prediction: 21.15 | Threshold: 30.5 | 5-Game Avg: NA | Decision: Less<br>Model: **rebounds_model** | Prediction: 6.28 | Threshold: 4.37 | 5-Game Avg: NA | Decision: More<br>Model: **assists_model** | Prediction: 5.45 | Threshold: 3.55 | 5-Game Avg: NA | Decision: More<br>Model: **total_pra_model** | Prediction: 49.57 | Threshold: 28.65 | 5-Game Avg: NA | Decision: More<br>Model: **threepm_model** | Prediction: 3.47 | Threshold: 2.78 | 5-Game Avg: NA | Decision: More<br>Model: **stl_blk_model** | Prediction: 1.91 | Threshold: 1.5 | 5-Game Avg: NA | Decision: More<br>Model: **turnovers_model** | Prediction: 3 | Threshold: 2.02 | 5-Game Avg: NA | Decision: More<br>Model: **fantasy_score_model** | Prediction: 61.23 | Threshold: 37.52 | 5-Game Avg: NA | Decision: More<br>
 
-Player: Jalen Brunson | Best Prediction: 44.6 | Model: fantasy_score_model | Threshold: 40 | Decision: Above Threshold
-  All Predictions:
-    Model: points_model | Prediction: 24 | Threshold: 20 | Decision: Above Threshold
-    Model: rebounds_model | Prediction: 7.53 | Threshold: 10 | Decision: Below Threshold
-    Model: assists_model | Prediction: 5.06 | Threshold: 5 | Decision: Below Threshold
-    Model: total_pra_model | Prediction: 35.84 | Threshold: 30 | Decision: Above Threshold
-    Model: threepm_model | Prediction: 2.83 | Threshold: 2 | Decision: Above Threshold
-    Model: stl_blk_model | Prediction: 1.81 | Threshold: 3 | Decision: Below Threshold
-    Model: turnovers_model | Prediction: 2.62 | Threshold: 3 | Decision: Below Threshold
-    Model: fantasy_score_model | Prediction: 44.6 | Threshold: 40 | Decision: Above Threshold
+### **Player: Austin Reaves**
+**Best Prediction**: 34.72 | Model: fantasy_score_model | Decision: Less
+
+<u>All Predictions:</u><br>Model: **points_model** | Prediction: 21.59 | Threshold: 19.5 | 5-Game Avg: NA | Decision: More<br>Model: **rebounds_model** | Prediction: 4.29 | Threshold: 4.37 | 5-Game Avg: NA | Decision: Less<br>Model: **assists_model** | Prediction: 3.6 | Threshold: 3.55 | 5-Game Avg: NA | Decision: Less<br>Model: **total_pra_model** | Prediction: 28.45 | Threshold: 28.65 | 5-Game Avg: NA | Decision: Less<br>Model: **threepm_model** | Prediction: 1.91 | Threshold: 2.78 | 5-Game Avg: NA | Decision: Less<br>Model: **stl_blk_model** | Prediction: 1.03 | Threshold: 1.5 | 5-Game Avg: NA | Decision: Less<br>Model: **turnovers_model** | Prediction: 2.13 | Threshold: 2.02 | 5-Game Avg: NA | Decision: Less<br>Model: **fantasy_score_model** | Prediction: 34.72 | Threshold: 37.52 | 5-Game Avg: NA | Decision: Less<br>
+

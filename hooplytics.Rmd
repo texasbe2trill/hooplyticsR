@@ -1,6 +1,16 @@
 ---
-title: "hooplytics"
-output: html_document
+title: "Hoop Analytics Powered by R"
+author: "Chris Campbell"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: '3'
+    number_sections: true
+  pdf_document:
+    toc: true
+    toc_depth: '3'
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -8,49 +18,683 @@ library(nbastatR)
 library(ggplot2)
 library(lintr)
 library(dplyr)
-
+library(caret)
+library(randomForest)
+library(glue)
+library(kableExtra)
 ```
 
-## NBA Player Data
-```{r warning=FALSE}
+# Introduction
+
+hooplyticsR, a data-driven project, analyzes basketball player performance using advanced statistical techniques and data visualization from the nbastatR package. It provides in-depth insights into player performance variability and trends by analyzing key metrics like points, rebounds, assists, and fantasy scores. The project aims to create an interactive platform for analyzing basketball data, identifying patterns, and supporting decision-making in player evaluation and fantasy basketball. hooplyticsR makes basketball data more accessible and actionable through statistical analysis and powerful visualizations.
+
+```{r warning=FALSE, include=FALSE}
+# NBA Player Data
 # A dynamic list of NBA players
-players <- c("LeBron James", "Kevin Durant", "Stephen Curry",
-             "Giannis Antetokounmpo", "Kawhi Leonard")
+players <- c("Kevin Durant", "Joel Embiid",
+             "Jalen Brunson", "Donovan Mitchell")
 
 # Get player data for the past three seasons
-player_data <- game_logs(seasons = c(2023, 2024, 2025),
+player_data <- game_logs(seasons = c(2015:2025),
                          result_types = "player",
                          Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 2))
 ```
 
-## Average Points Per Game
-```{r}
+# Player Statistics
+
+This section provides a detailed statistical overview of various basketball players based on their performance across multiple metrics. For each player, we calculate both average values and standard deviations for key performance indicators such as points, rebounds, assists, and fantasy scores. These calculations allow for an in-depth understanding of a player’s consistency and overall impact on the game.
+
+### Key Statistics Included:
+
+1. **Games Played**: The total number of games each player participated in.
+2. **Average Points**: The player’s average points scored per game.
+3. **Average Rebounds**: The average number of rebounds grabbed per game.
+4. **Average Assists**: The average number of assists made per game.
+5. **Average Points + Rebounds + Assists (PRA)**: A combined measure of points, rebounds, and assists to give a broader view of overall player contribution.
+6. **Average 3-Point Field Goals Made**: The average number of successful three-pointers made per game.
+7. **Average Steals + Blocks**: A combined statistic for steals and blocks, reflecting a player’s defensive impact.
+8. **Average Turnovers**: The average number of turnovers committed per game.
+9. **Average Fantasy Score**: A calculated fantasy score based on points, rebounds, assists, steals, blocks, and turnovers.
+10. **Standard Deviation (SD) Values**: For each key metric, the standard deviation is provided, indicating how consistent the player is across games.
+
+This summary is generated for each player, providing a clear and concise view of their performance and variability over time. The summary can be used to identify trends, strengths, and areas for improvement, and can be easily included in reports or further analysis.
+
+```{r echo=FALSE}
 # Function to retrieve the average points per game for a list of players
-get_avg_points_per_game <- function(player_names) {
+get_avg_player_stats <- function(player_names) {
   # Filter the player data to only include the players in the list
   player_data_filtered <- player_data %>%
     filter(.data$namePlayer %in% player_names)
 
-  # Calculate the average points per game for each player
-  avg_points_per_game <- player_data_filtered %>%
-    group_by(.data$namePlayer) %>%
-    summarize(avg_points_per_game = round(mean(.data$pts), 2))
+  # Calculate the average stats for each player
+  avg_stats <- player_data_filtered %>%
+    group_by(namePlayer) %>%
+ summarize(
+      games_played = n(), # Number of games played
+      # Average Points
+      avg_points = round(mean(pts, na.rm = TRUE), 2),
+      # Average Rebounds
+      avg_rebounds = round(mean(treb, na.rm = TRUE), 2),
+      # Average Assists
+      avg_assists = round(mean(ast, na.rm = TRUE), 2),
+      # Average Points + Rebounds + Assists
+      avg_pra = round(mean(pts + treb + ast, na.rm = TRUE), 2),
+      # Average 3pt Field Goals Made
+      avg_3pm = round(mean(fg3m, na.rm = TRUE), 2),
+      # Average Steals + Blocks
+      avg_stl_blk = round(mean(stl + blk, na.rm = TRUE), 2),
+      # Average Turnovers
+      avg_turnovers = round(mean(tov, na.rm = TRUE), 2),
+      # Average Fantasy Score
+      fantasy_score = round(mean(pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 +
+                                   blk * 3 - tov * 1, na.rm = TRUE), 2),
+      # Standard Deviation of Points
+      sd_points = round(sd(pts, na.rm = TRUE), 2),
+      # Standard Deviation of Rebounds
+      sd_rebounds = round(sd(treb, na.rm = TRUE), 2),
+      # Standard Deviation of Assists
+      sd_assists = round(sd(ast, na.rm = TRUE), 2),
+      # Standard Deviation of Points + Rebounds + Assists
+      sd_pra = round(sd(pts + treb + ast, na.rm = TRUE), 2),
+      # Standard Deviation of 3pt Field Goals Made
+      sd_3pm = round(sd(fg3m, na.rm = TRUE), 2),
+      # Standard Deviation of Steals + Blocks
+      sd_stl_blk = round(sd(stl + blk, na.rm = TRUE), 2),
+      # Standard Deviation of Turnovers
+      sd_turnovers = round(sd(tov, na.rm = TRUE), 2),
+      # Standard Deviation of Fantasy Score
+      sd_fantasy_score = round(sd(pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 +
+                                    blk * 3 - tov * 1, na.rm = TRUE), 2)
+    ) %>%
+    # Rename the columns for better readability
+    rename(
+      Player = namePlayer,
+      Games_Played = games_played,
+      Points = avg_points,
+      Rebounds = avg_rebounds,
+      Assists = avg_assists,
+      Pts_Rebs_Assists = avg_pra,
+      Three_Pts_Made = avg_3pm,
+      Steal_Blocks = avg_stl_blk,
+      Turnovers = avg_turnovers,
+      Fantasy_Score = fantasy_score,
+      SD_Points = sd_points,
+      SD_Rebounds = sd_rebounds,
+      SD_Assists = sd_assists,
+      SD_Pts_Rebs_Assists = sd_pra,
+      SD_Three_Pts_Made = sd_3pm,
+      SD_Steal_Blocks= sd_stl_blk,
+      SD_Turnovers = sd_turnovers,
+      SD_Fantasy_Score = sd_fantasy_score
+    )
 
-  return(avg_points_per_game)
+  return(avg_stats)
 }
 # Return the average points per game for the list of players
-get_avg_points_per_game(players)
+player_stats_df <- data.frame(get_avg_player_stats(players))
 
-# Average Points Per Game Distribution Visualization
+## Summary Analysis
+
+# Function to create a summary for each player
+
+generate_player_summary <- function(player_stats_df) {
+  summaries <- apply(player_stats_df, 1, function(row) {
+    glue("
+      ### **{row['Player']}**
+
+      **Games Played:** {row['Games_Played']}
+
+      **Average Points:** {row['Points']}
+      **Average Rebounds:** {row['Rebounds']}
+      **Average Assists:** {row['Assists']}
+      **Average Points + Rebounds + Assists (PRA):** {row['Pts_Rebs_Assists']}
+
+      **Average 3-Point Field Goals Made:** {row['Three_Pts_Made']}
+      **Average Steals + Blocks:** {row['Steal_Blocks']}
+      **Average Turnovers:** {row['Turnovers']}
+      **Average Fantasy Score:** {row['Fantasy_Score']}
+
+      **Consistency (Standard Deviation):**
+      - **Points:** {row['SD_Points']}
+      - **Rebounds:** {row['SD_Rebounds']}
+      - **Assists:** {row['SD_Assists']}
+      - **PRA (Points + Rebounds + Assists):** {row['SD_Pts_Rebs_Assists']}
+      - **3-Point Field Goals Made:** {row['SD_Three_Pts_Made']}
+      - **Steals + Blocks:** {row['SD_Steal_Blocks']}
+      - **Turnovers:** {row['SD_Turnovers']}
+      - **Fantasy Score:** {row['SD_Fantasy_Score']}
+
+      *The lower the standard deviation (SD), the more consistent the player is across games. A high SD indicates variability, suggesting the player's performance is less predictable. For instance, a low SD in points means the player typically scores within a narrow range, while a high SD might indicate fluctuating performance.*
+
+      ----
+    ")
+  })
+
+  return(paste(summaries, collapse = "\n"))
+}
+
+# Call the function to get the summary output
+cat(generate_player_summary(player_stats_df))
+```
+## Player Performance Table
+
+The following table summarizes each player's performance across key metrics, allowing for easy comparison. It includes averages for essential statistics such as points, rebounds, assists, fantasy scores, and more.
+
+### Key Metrics Included:
+- **Games Played**: Number of games the player participated in.
+- **Average Points**: The player's average points scored.
+- **Average Rebounds**: The player's average rebounds.
+- **Average Assists**: The player's average assists.
+- **Average PRA (Points + Rebounds + Assists)**: The combined average of points, rebounds, and assists.
+- **Average 3PM**: The average number of three-pointers made.
+- **Average Steals + Blocks**: The combined average of steals and blocks.
+- **Average Turnovers**: The average number of turnovers committed.
+- **Average Fantasy Score**: The player's average fantasy score.
+
+```{r echo=FALSE}
+# Remove SD_* columns
+player_stats_df_no_sd <- player_stats_df %>%
+  select(-starts_with("SD_"))
+
+
+generate_player_summary_table <- function(player_stats_df_no_sd) {
+  # Renaming columns for better readability
+  colnames(player_stats_df_no_sd) <- c(
+    "Player",
+    "Games Played",
+    "Average Points",
+    "Average Rebounds",
+    "Average Assists",
+    "Average PRA (Pts + Rebs + Assists)",
+    "Average 3PM",
+    "Average Steals + Blocks",
+    "Average Turnovers",
+    "Average Fantasy Score"
+  )
+
+  # Create the kable
+  player_table <- player_stats_df_no_sd %>%
+    kable("html", escape = FALSE,
+          caption = "Player Performance Breakdown") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  full_width = F) %>%
+    scroll_box(width = "100%", height = "400px") # Make the kable scrollable
+
+  return(player_table)
+}
+
+# Create the summary table
+player_summary_table <- generate_player_summary_table(player_stats_df_no_sd)
+
+# Display the table
+player_summary_table
+```
+
+# Data Visualization
+
+This section uses visualizations to highlight key player performance statistics and their variability. It explores the distribution and consistency of metrics like scoring, rebounds, assists, three-pointers, turnovers, and fantasy scores. Examining the overall distribution and standard deviation provides insights into player consistency and overall contributions. The visualizations reveal trends and patterns, helping identify more consistent players and aid data-driven decision-making.
+
+## Total Points Distribution
+
+```{r echo=FALSE}
+# Total Points Distribution Visualization
 player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = pts, fill = namePlayer)) +
-  geom_histogram(binwidth = 5, position = "dodge") +
+  geom_histogram(binwidth = 5, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Average Points Per Game 2022 - 2025",
-       x = "Points Per Game",
+  labs(title = "Total Points Distribution",
+       x = "Points",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+```
+
+## Standard Deviation of Points
+
+```{r echo=FALSE}
+# Standard Deviation of Points Visualization
+player_stats_df %>%
+  arrange(desc(SD_Points)) %>%
+  ggplot(aes(x = reorder(Player, SD_Points), y = SD_Points, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Points",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+```
+
+## Total Rebounds Distribution
+
+```{r echo=FALSE}
+# Total Rebounds Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = treb, fill = namePlayer)) +
+  geom_histogram(binwidth = 2, position = "dodge", color = "black") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Total Rebounds Distribution",
+       x = "Total Rebounds",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Standard Deviation of Rebounds
+
+```{r echo=FALSE}
+# Standard Deviation of Rebounds Visualization
+player_stats_df %>%
+  arrange(desc(SD_Rebounds)) %>%
+  ggplot(aes(x = reorder(Player, SD_Rebounds), y = SD_Rebounds, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Rebounds",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+```
+
+## Total Assists Distribution
+
+```{r echo=FALSE}
+# Total Assists Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = ast, fill = namePlayer)) +
+  geom_histogram(binwidth = 2, position = "dodge", color = "black") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Total Assists Distribution",
+       x = "Total Assists",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Standard Deviation of Assists
+
+```{r echo=FALSE}
+# Standard Deviation of Assists Visualization
+player_stats_df %>%
+  arrange(desc(SD_Assists)) %>%
+  ggplot(aes(x = reorder(Player, SD_Assists), y = SD_Assists, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Assists",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+```
+
+## Total Points + Rebounds + Assists Distribution
+
+```{r echo=FALSE}
+# Total Points + Rebounds + Assists Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = pts + treb + ast, fill = namePlayer)) +
+  geom_histogram(binwidth = 5, position = "dodge", color = "black") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Total Points + Rebounds + Assists Distribution",
+       x = "Total Points + Rebounds + Assists",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Standard Deviation of Points + Rebounds + Assists
+
+```{r echo=FALSE}
+# Standard Deviation of Points + Rebounds + Assists Visualization
+player_stats_df %>%
+  arrange(desc(SD_Pts_Rebs_Assists)) %>%
+  ggplot(aes(x = reorder(Player, SD_Pts_Rebs_Assists), y = SD_Pts_Rebs_Assists, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Points + Rebounds + Assists",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+```
+
+## Total Three-Pointers Made Distribution
+
+```{r echo=FALSE}
+# Total Three-Pointers Made Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = fg3m, fill = namePlayer)) +
+  geom_histogram(binwidth = 1, position = "dodge", color = "black") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Total Three-Pointers Made Distribution",
+       x = "Total Three-Pointers Made",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Standard Deviation of Three-Pointers Made
+
+```{r echo=FALSE}
+# Standard Deviation of Three-Pointers Made Visualization
+player_stats_df %>%
+  arrange(desc(SD_Three_Pts_Made)) %>%
+  ggplot(aes(x = reorder(Player, SD_Three_Pts_Made), y = SD_Three_Pts_Made, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Three-Pointers Made",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+```
+
+## Total Steals + Blocks Distribution
+
+```{r echo=FALSE}
+# Total Steals + Blocks Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = stl + blk, fill = namePlayer)) +
+  geom_histogram(binwidth = 1, position = "dodge", color = "black") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Total Steals + Blocks Distribution",
+       x = "Total Steals + Blocks",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Standard Deviation of Steals + Blocks
+
+```{r echo=FALSE}
+# Standard Deviation of Steals + Blocks Visualization
+player_stats_df %>%
+  arrange(desc(SD_Steal_Blocks)) %>%
+  ggplot(aes(x = reorder(Player, SD_Steal_Blocks), y = SD_Steal_Blocks, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Steals + Blocks",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+```
+
+## Total Turnovers Distribution
+
+```{r echo=FALSE}
+# Total Turnovers Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = tov, fill = namePlayer)) +
+  geom_histogram(binwidth = 1, position = "dodge", color = "black") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Total Turnovers Distribution",
+       x = "Total Turnovers",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Standard Deviation of Turnovers
+
+```{r echo=FALSE}
+# Standard Deviation of Turnovers Visualization
+player_stats_df %>%
+  arrange(desc(SD_Turnovers)) %>%
+  ggplot(aes(x = reorder(Player, SD_Turnovers), y = SD_Turnovers, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Turnovers",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+```
+
+## Total Fantasy Score Distribution
+
+```{r echo=FALSE}
+# Total Fantasy Score Distribution Visualization
+player_data %>%
+  filter(namePlayer %in% players) %>%
+  ggplot(aes(x = pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 + blk * 3 - tov * 1, fill = namePlayer)) +
+  geom_histogram(binwidth = 5, position = "dodge", color = "black") +
+  facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
+             axis.labels = "all_x") +
+  labs(title = "Total Fantasy Score Distribution",
+       x = "Total Fantasy Score",
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Standard Deviation of Fantasy Score
+
+```{r echo=FALSE}
+# Standard Deviation of Fantasy Score Visualization
+player_stats_df %>%
+  arrange(desc(SD_Fantasy_Score)) %>%
+  ggplot(aes(x = reorder(Player, SD_Fantasy_Score), y = SD_Fantasy_Score, fill = Player)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Standard Deviation of Fantasy Score",
+       x = "Player",
+       y = "Standard Deviation",
+       caption = "High SD = Inconsistent Performance,
+       Low SD = Consistent Performance") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+```
+
+```{r include=FALSE}
+# Machine Learning
+
+# Function to train Random Forest models for betting categories (PrizePicks)
+train_rf_models <- function(player_data, player_names) {
+  # Filter the player data to only include the players in the list
+  player_data_filtered <- player_data %>%
+    filter(namePlayer %in% player_names) %>%
+    mutate(
+      points = pts,
+      rebounds = treb,
+      assists = ast,
+      total_pra = pts + treb + ast,
+      threepm = fg3m,
+      stl_blk = stl + blk,
+      turnovers = tov,
+      fantasy_score = pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 + blk * 3 - tov * 1
+    )
+
+  # Remove rows with missing data
+  player_data_filtered <- na.omit(player_data_filtered)
+
+  # Split data into training and testing sets
+  set.seed(123)
+  train_index <- createDataPartition(player_data_filtered$pts, p = 0.8, list = FALSE)
+  train_data <- player_data_filtered[train_index, ]
+  test_data <- player_data_filtered[-train_index, ]
+
+  # Train models for betting categories
+  models <- list(
+    points_model = randomForest(pts ~ treb + ast + stl + blk + tov, data = train_data),
+    rebounds_model = randomForest(treb ~ pts + ast + stl + blk + tov, data = train_data),
+    assists_model = randomForest(ast ~ pts + treb + stl + blk + tov, data = train_data),
+    total_pra_model = randomForest(total_pra ~ pts + treb + ast + stl + blk + tov, data = train_data),
+    threepm_model = randomForest(fg3m ~ pts + treb + ast + stl + blk + tov, data = train_data),
+    stl_blk_model = randomForest(stl_blk ~ pts + treb + ast + blk + tov, data = train_data),
+    turnovers_model = randomForest(tov ~ pts + treb + ast + stl + blk, data = train_data),
+    fantasy_score_model = randomForest(fantasy_score ~ pts + treb + ast + stl + blk + tov, data = train_data)
+  )
+
+  return(list(models = models, test_data = test_data))
+}
+```
+
+
+```{r include=FALSE}
+# Train Models
+
+rf_model_data <- train_rf_models(player_data, players)
+models <- rf_model_data$models
+test_data <- rf_model_data$test_data
+```
+
+
+```{r include=FALSE}
+# Evaluate Models
+
+# Function to evaluate models and get predictions
+evaluate_rf_models <- function(models, test_data) {
+  predictions <- list()
+
+  # Evaluate and get predictions for each model
+  for (model_name in names(models)) {
+    model <- models[[model_name]]
+
+    # Get the predictor variables used in the model
+    model_vars <- all.vars(model$call$formula)[-1]  # All vars used for prediction (excluding the target)
+
+    # Ensure that all predictor variables are in the test data
+    missing_vars <- setdiff(model_vars, colnames(test_data))
+    if (length(missing_vars) > 0) {
+      stop(paste("Test data is missing the following variables:", paste(missing_vars, collapse = ", ")))
+    }
+
+    # Subset test data to only include the predictor variables
+    test_data_with_predictors <- test_data[, model_vars, drop = FALSE]
+
+    # Make predictions for the model
+    predictions[[model_name]] <- predict(model, test_data_with_predictors)
+  }
+
+  return(predictions)
+}
+
+# Evaluate models and get predictions
+predictions <- evaluate_rf_models(models, test_data)
+```
+
+# **Predictions**
+
+In this section, we explore machine learning to predict basketball player performance using historical data. We aim to forecast key statistics like points, rebounds, assists, and fantasy scores with precision. These predictions provide valuable insights for fantasy basketball decisions, player evaluation, and team strategies. Whether drafting or analyzing game performance, our data-driven predictions give you a competitive edge.
+
+```{r echo=FALSE}
+# Function to evaluate models and make fantasy decisions
+make_fantasy_decisions_by_model <- function(predictions, test_data, thresholds, confidence_margin = 0.1) {
+  # Create an empty list to store results by player
+  results_by_player <- list()
+
+  # Loop over each player to make predictions
+  for (i in 1:nrow(test_data)) {
+    player_name <- test_data$namePlayer[i]
+
+    # Initialize variables to track the best prediction for the player
+    best_prediction <- -Inf
+    best_model <- NULL
+    best_threshold <- NULL
+    best_decision <- NULL
+    all_predictions <- list()  # To store all predictions for this player
+
+    # Loop over each model to evaluate the prediction for the current player
+    for (model_name in names(predictions)) {
+      prediction <- predictions[[model_name]][i]
+      threshold <- thresholds[[model_name]]
+
+      # Decision based on prediction above or below threshold and margin
+      decision <- ifelse(prediction > threshold * (1 + confidence_margin), "Above Threshold", "Below Threshold")
+
+      # Track the best prediction across models for the player
+      if (prediction > best_prediction) {
+        best_prediction <- prediction
+        best_model <- model_name
+        best_threshold <- threshold
+        best_decision <- decision
+      }
+
+      # Store all predictions for this player
+      all_predictions[[model_name]] <- list(
+        model = model_name,
+        prediction = round(prediction, 2),
+        threshold = threshold,
+        decision = decision
+      )
+    }
+
+    # Store the best prediction and all predictions for the current player
+    results_by_player[[player_name]] <- list(
+      player_name = player_name,
+      best_prediction = round(best_prediction, 2),
+      best_model = best_model,
+      best_threshold = best_threshold,
+      best_decision = best_decision,
+      all_predictions = all_predictions
+    )
+  }
+
+  # Print the best prediction for each player along with all predictions
+  for (player_name in names(results_by_player)) {
+    result <- results_by_player[[player_name]]
+    cat("\nPlayer:", result$player_name,
+        "| Best Prediction:", result$best_prediction,
+        "| Model:", result$best_model,
+        "| Threshold:", result$best_threshold,
+        "| Decision:", result$best_decision, "\n")
+
+    cat("  All Predictions:\n")
+    # Print all predictions for the player
+    for (prediction in result$all_predictions) {
+      cat("    Model:", prediction$model,
+          "| Prediction:", prediction$prediction,
+          "| Threshold:", prediction$threshold,
+          "| Decision:", prediction$decision, "\n")
+    }
+  }
+}
+
+# Define the threshold for each model
+thresholds <- list(
+  points_model = 20,
+  rebounds_model = 10,
+  assists_model = 5,
+  total_pra_model = 30,
+  threepm_model = 2,
+  stl_blk_model = 3,
+  turnovers_model = 3,
+  fantasy_score_model = 40
+)
+
+# Make fantasy decisions based on the predictions
+make_fantasy_decisions_by_model(predictions, test_data, thresholds)
+
+# Write the predictions to a text file
+writeLines(capture.output(make_fantasy_decisions_by_model(predictions, test_data, thresholds)), "predictions.txt")
 ```

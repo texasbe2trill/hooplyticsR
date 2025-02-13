@@ -54,11 +54,13 @@ players <- c("Anthony Edwards", "Austin Reaves", "Klay Thompson")
 
 # Retrieve player data from the past 10 seasons
 
-player_data <- game_logs(seasons = 2015:2025, result_types = "player", Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 \* 2))
+player_data <- game_logs(seasons = 2015:2025, result_types = "player",
+Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 \* 2))
 
 # Train KNN models for the selected players
 
-knn_model_data <- train_knn_models(player_data, players) models <- knn_model_data$models
+knn_model_data <- train_knn_models(player_data, players)
+models <- knn_model_data$models
 test_data <- knn_model_data$test_data
 
 # Evaluate the trained models
@@ -87,5 +89,6 @@ player_5_game_averages <- list(
 
 # Make fantasy decisions based on predictions, projections, and 5-game averages
 
-make_fantasy_decisions_by_model(predictions, test_data, player_projections, player_5_game_averages)
+make_fantasy_decisions_by_model(predictions, test_data,
+player_projections, player_5_game_averages)
 ```

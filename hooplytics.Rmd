@@ -29,11 +29,10 @@ library(renv)
 hooplyticsR, a data-driven project, analyzes basketball player performance using advanced statistical techniques and data visualization from the nbastatR package. It provides in-depth insights into player performance variability and trends by analyzing key metrics like points, rebounds, assists, and fantasy scores. The project aims to create an interactive platform for analyzing basketball data, identifying patterns, and supporting decision-making in player evaluation and fantasy basketball. hooplyticsR makes basketball data more accessible and actionable through statistical analysis and powerful visualizations.
 
 ```{r warning=FALSE, include=FALSE}
-# NBA Player Data
-# A dynamic list of NBA players
+# Input the names of the NBA players you want to analyze
 players <- c("Anthony Edwards", "Austin Reaves", "Klay Thompson")
 
-# Get player data for the past three seasons
+# Get player data from the past 10 seasons
 player_data <- game_logs(seasons = c(2015:2025),
                          result_types = "player",
                          Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 2))
@@ -568,7 +567,7 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, player_proje
   }
 }
 
-# Example Player-Specific Projections
+# Input Player-Specific Projections
 player_projections <- list(
   "Austin Reaves" = list(
     points_model = 19.5
@@ -581,7 +580,7 @@ player_projections <- list(
   )
 )
 
-# # Example 5-game averages
+# Input Player 5-Game Averages
 player_5_game_averages <- list(
   "Austin Reaves" = list(
     points_model = round(mean(c(22, 45, 23, 20, 27)), 2)
@@ -594,7 +593,7 @@ player_5_game_averages <- list(
   )
 )
 
-# Make fantasy decisions based on the predictions and 5-game averages
+# Make fantasy decisions based on the predictions, projections and 5-game averages
 make_fantasy_decisions_by_model(predictions, test_data, player_projections, player_5_game_averages)
 
 # Write the predictions to a text file

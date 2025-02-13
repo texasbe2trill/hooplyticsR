@@ -176,7 +176,7 @@ cat(generate_player_summary(player_stats_df))
 
 The following table summarizes each player's performance across key metrics, allowing for easy comparison. It includes averages for essential statistics such as points, rebounds, assists, fantasy scores, and more.
 
-### Key Metrics Included:
+### Key Metrics:
 - **Games Played**: Number of games the player participated in.
 - **Average Points**: The player's average points scored.
 - **Average Rebounds**: The player's average rebounds.
@@ -383,7 +383,7 @@ train_rf_models <- function(player_data, player_names) {
       threepm = fg3m,
       stl_blk = stl + blk,
       turnovers = tov,
-      fantasy_score = pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 + blk * 3 - tov * (-1)
+      fantasy_score = fpts
     )
 
   # Remove rows with missing data
@@ -460,58 +460,49 @@ predictions <- evaluate_rf_models(models, test_data)
 In this section, we explore machine learning to predict basketball player performance using historical data. We aim to forecast key statistics like points, rebounds, assists, and fantasy scores with precision. These predictions provide valuable insights for fantasy basketball decisions, player evaluation, and team strategies. Whether drafting or analyzing game performance, our data-driven predictions give you a competitive edge.
 
 ```{r echo=FALSE, results='asis'}
-# Function to evaluate models and make fantasy decisions based on over or under
-make_fantasy_decisions_by_model <- function(predictions, test_data, player_thresholds = NULL, player_5_game_averages = NULL, confidence_margin = 0.1, weight_5_game_avg = 0.7) {
-  # Create an empty list to store results by player
+make_fantasy_decisions_by_model <- function(predictions, test_data, player_projections = NULL, player_5_game_averages = NULL, confidence_margin = 0.1, weight_projection = 0.8, weight_model = 0.2, weight_5_game_avg = 0.7) {
   results_by_player <- list()
 
-  # Loop over each player to make predictions
   for (i in 1:nrow(test_data)) {
     player_name <- test_data$namePlayer[i]
-
-    # Initialize variables to track the best prediction for the player
     best_prediction <- -Inf
     best_model <- NULL
     best_decision <- NULL
-    all_predictions <- list()  # To store all predictions for this player
+    all_predictions <- list()
 
-    # Loop over each model to evaluate the prediction for the current player
     for (model_name in names(predictions)) {
       prediction <- predictions[[model_name]][i]
 
-      # Calculate a threshold based on player-specific thresholds or model predictions
-      threshold <- if (!is.null(player_thresholds) && 
-                       player_name %in% names(player_thresholds) && 
-                       model_name %in% names(player_thresholds[[player_name]])) {
-        player_thresholds[[player_name]][[model_name]]
+      # Step 1: Use player projection if available, otherwise fallback to model prediction
+      projection <- if (!is.null(player_projections) && 
+                        player_name %in% names(player_projections) && 
+                        model_name %in% names(player_projections[[player_name]])) {
+        player_projections[[player_name]][[model_name]]
       } else {
         mean(predictions[[model_name]], na.rm = TRUE)  # Default to mean of all predictions
       }
 
-      # Incorporate 5-game average with additional weight if available
+      # Step 2: Incorporate 5-game average if available
       if (!is.null(player_5_game_averages) && 
           player_name %in% names(player_5_game_averages) && 
           model_name %in% names(player_5_game_averages[[player_name]])) {
         five_game_average <- player_5_game_averages[[player_name]][[model_name]]
-        
-        # Weighted average between model threshold and 5-game average
-        weighted_threshold <- (weight_5_game_avg * five_game_average) + ((1 - weight_5_game_avg) * threshold)
+        weighted_threshold <- (weight_5_game_avg * five_game_average) + ((1 - weight_5_game_avg) * projection)
       } else {
-        five_game_average <- NA  # Default to NA if no 5-game average is available
-        weighted_threshold <- threshold  # If no 5-game average, use the threshold as is
+        five_game_average <- NA  # Default if no 5-game average is available
+        weighted_threshold <- projection
       }
 
-      # Decision based on prediction above or below weighted threshold and margin
-      adjusted_threshold <- weighted_threshold * (1 + confidence_margin)  # Adjust threshold based on confidence margin
+      # Step 3: Calculate the final threshold, giving more weight to defined projections
+      final_threshold <- (weight_projection * projection) + (weight_model * weighted_threshold)
 
-      # Ensure the threshold is used to make the decision
-      if (prediction > adjusted_threshold) {
-        decision <- "More"
-      } else {
-        decision <- "Less"
-      }
+      # Step 4: Adjust threshold with confidence margin
+      adjusted_threshold <- final_threshold * (1 + confidence_margin)
 
-      # Track the best prediction across models for the player
+      # Decision based on prediction above or below adjusted threshold
+      decision <- if (prediction > adjusted_threshold) "More" else "Less"
+
+      # Track the best prediction across models
       if (prediction > best_prediction) {
         best_prediction <- prediction
         best_model <- model_name
@@ -522,13 +513,15 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, player_thres
       all_predictions[[model_name]] <- list(
         model = model_name,
         prediction = round(prediction, 2),
-        threshold = round(weighted_threshold, 2),  # Store the calculated weighted threshold
+        projection = round(projection, 2),
+        weighted_threshold = round(weighted_threshold, 2),
+        final_threshold = round(final_threshold, 2),
         decision = decision,
-        five_game_average = round(five_game_average, 2)  # Include the 5-game average
+        five_game_average = round(five_game_average, 2)
       )
     }
 
-    # Store the best prediction and all predictions for the current player
+    # Store results for the player
     results_by_player[[player_name]] <- list(
       player_name = player_name,
       best_prediction = round(best_prediction, 2),
@@ -538,33 +531,28 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, player_thres
     )
   }
 
-  # Print the best prediction for each player along with all predictions
+  # Print the results
   for (player_name in names(results_by_player)) {
     result <- results_by_player[[player_name]]
-    
-    # Format the player's results
     player_result <- glue::glue(
       "### **Player: {result$player_name}**\n",
       "**Best Prediction**: {result$best_prediction} | Model: {result$best_model} | Decision: {result$best_decision}\n\n",
-      "<u>All Predictions:</u><br>"  # Add HTML <br> for line breaks
+      "<u>All Predictions:</u><br>"
     )
-    
-    # Append all individual model predictions for the player
+
     for (prediction in result$all_predictions) {
       player_result <- glue::glue(
         player_result,
-        "Model: **{prediction$model}** | Prediction: {prediction$prediction} | Threshold: {prediction$threshold} | 5-Game Avg: {prediction$five_game_average} | Decision: {prediction$decision}<br>"
+        "Model: **{prediction$model}** | Prediction: {prediction$prediction} | Projection: {prediction$projection} | Threshold: {prediction$final_threshold} | 5-Game Avg: {prediction$five_game_average} | Decision: {prediction$decision}<br>"
       )
     }
-    
-    # Use `cat` with `asis` for R Markdown compatibility to print results
+
     cat(player_result, "\n\n", sep = "")
   }
 }
 
-# Example Player-Specific Thresholds
-player_thresholds <- list(
-  
+# Example Player-Specific Projections
+player_projections <- list(
   "Austin Reaves" = list(
     points_model = 19.5
   ),
@@ -576,9 +564,8 @@ player_thresholds <- list(
   )
 )
 
-# Example 5-game averages
+# # Example 5-game averages
 player_5_game_averages <- list(
-  
   "Austin Reaves" = list(
     points_model = round(mean(c(22, 45, 23, 20, 27)), 2)
   ),
@@ -591,8 +578,8 @@ player_5_game_averages <- list(
 )
 
 # Make fantasy decisions based on the predictions and 5-game averages
-make_fantasy_decisions_by_model(predictions, test_data, player_thresholds, player_5_game_averages)
+make_fantasy_decisions_by_model(predictions, test_data, player_projections, player_5_game_averages)
 
 # Write the predictions to a text file
-writeLines(capture.output(make_fantasy_decisions_by_model(predictions, test_data, player_thresholds)), "data/predictions.txt")
+writeLines(capture.output(make_fantasy_decisions_by_model(predictions, test_data, player_projections)), "data/predictions.txt")
 ```

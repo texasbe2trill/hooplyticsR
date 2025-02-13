@@ -18,7 +18,6 @@ library(nbastatR)
 library(ggplot2)
 library(dplyr)
 library(caret)
-library(randomForest)
 library(glue)
 library(kableExtra)
 library(devtools)
@@ -32,7 +31,7 @@ hooplyticsR, a data-driven project, analyzes basketball player performance using
 ```{r warning=FALSE, include=FALSE}
 # NBA Player Data
 # A dynamic list of NBA players
-players <- c("Klay Thompson", "Anthony Edwards", "Austin Reaves")
+players <- c("Anthony Edwards", "Austin Reaves", "Klay Thompson")
 
 # Get player data for the past three seasons
 player_data <- game_logs(seasons = c(2015:2025),
@@ -140,7 +139,7 @@ player_stats_df <- data.frame(get_avg_player_stats(players))
 generate_player_summary <- function(player_stats_df) {
   summaries <- apply(player_stats_df, 1, function(row) {
    glue(
-      "### {row['Player']}\n\n",
+      "### **{row['Player']}**\n\n",
       "**Games Played:** {row['Games_Played']}\n\n",
       "**Average Points:** {row['Points']}  \n",
       "**Average Rebounds:** {row['Rebounds']}  \n",
@@ -150,19 +149,19 @@ generate_player_summary <- function(player_stats_df) {
       "**Average Steals + Blocks:** {row['Steal_Blocks']}  \n",
       "**Average Turnovers:** {row['Turnovers']}  \n",
       "**Average Fantasy Score:** {row['Fantasy_Score']}\n\n",
-      "**Consistency (Standard Deviation):**\n",
-      "- **Points:** {row['SD_Points']}  \n",
-      "- **Rebounds:** {row['SD_Rebounds']}  \n",
-      "- **Assists:** {row['SD_Assists']}  \n",
-      "- **PRA (Points + Rebounds + Assists):** {row['SD_Pts_Rebs_Assists']}  \n",
-      "- **3-Point Field Goals Made:** {row['SD_Three_Pts_Made']}  \n",
-      "- **Steals + Blocks:** {row['SD_Steal_Blocks']}  \n",
-      "- **Turnovers:** {row['SD_Turnovers']}  \n",
-      "- **Fantasy Score:** {row['SD_Fantasy_Score']}\n\n",
-      "*The lower the standard deviation (SD), the more consistent the player is across games.  \n",
-      "A high SD indicates variability, suggesting the player's performance is less predictable.  \n",
-      "For instance, a low SD in points means the player typically scores within a narrow range,  \n",
-      "while a high SD might indicate fluctuating performance.*\n\n----\n\n"
+      "**Consistency (Standard Deviation):**\n\n",
+      "**Points:** {row['SD_Points']}  \n",
+      "**Rebounds:** {row['SD_Rebounds']}  \n",
+      "**Assists:** {row['SD_Assists']}  \n",
+      "**PRA (Points + Rebounds + Assists):** {row['SD_Pts_Rebs_Assists']}  \n",
+      "**3-Point Field Goals Made:** {row['SD_Three_Pts_Made']}  \n",
+      "**Steals + Blocks:** {row['SD_Steal_Blocks']}  \n",
+      "**Turnovers:** {row['SD_Turnovers']}  \n",
+      "**Fantasy Score:** {row['SD_Fantasy_Score']}\n\n",
+      "*The lower the standard deviation (SD), the more consistent the player is across games.",
+      " A high SD indicates variability, suggesting the player's performance is less predictable.*  \n\n",
+      "*For instance, a low SD in points means the player typically scores within a narrow range",
+      " while a high SD might indicate fluctuating performance.*\n\n----\n\n"
     )
   })
 
@@ -370,8 +369,11 @@ player_data %>%
 ```{r include=FALSE}
 # Machine Learning
 
-# Function to train Random Forest models for each category
-train_rf_models <- function(player_data, player_names) {
+# Function to train kNN models for each category
+train_knn_models <- function(player_data, player_names) {
+  # Load caret
+  library(caret)
+  
   # Filter the player data to only include the players in the list
   player_data_filtered <- player_data %>%
     filter(namePlayer %in% player_names) %>%
@@ -395,16 +397,20 @@ train_rf_models <- function(player_data, player_names) {
   train_data <- player_data_filtered[train_index, ]
   test_data <- player_data_filtered[-train_index, ]
 
-  # Train models for betting categories
+  # Control settings for kNN
+  control <- trainControl(method = "repeatedcv", number = 5, repeats = 3, 
+                          summaryFunction = defaultSummary)
+
+  # Train models for betting categories using kNN
   models <- list(
-    points_model = randomForest(pts ~ treb + ast + stl + blk + tov, data = train_data),
-    rebounds_model = randomForest(treb ~ pts + ast + stl + blk + tov, data = train_data),
-    assists_model = randomForest(ast ~ pts + treb + stl + blk + tov, data = train_data),
-    total_pra_model = randomForest(total_pra ~ pts + treb + ast + stl + blk + tov, data = train_data),
-    threepm_model = randomForest(fg3m ~ pts + treb + ast + stl + blk + tov, data = train_data),
-    stl_blk_model = randomForest(stl_blk ~ pts + treb + ast + blk + tov, data = train_data),
-    turnovers_model = randomForest(tov ~ pts + treb + ast + stl + blk, data = train_data),
-    fantasy_score_model = randomForest(fantasy_score ~ pts + treb + ast + stl + blk + tov, data = train_data)
+    points_model = train(pts ~ treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
+    rebounds_model = train(treb ~ pts + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
+    assists_model = train(ast ~ pts + treb + stl + blk + tov, data = train_data, method = "knn", trControl = control),
+    total_pra_model = train(total_pra ~ pts + treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
+    threepm_model = train(fg3m ~ pts + treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
+    stl_blk_model = train(stl_blk ~ pts + treb + ast + blk + tov, data = train_data, method = "knn", trControl = control),
+    turnovers_model = train(tov ~ pts + treb + ast + stl + blk, data = train_data, method = "knn", trControl = control),
+    fantasy_score_model = train(fantasy_score ~ pts + treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control)
   )
 
   return(list(models = models, test_data = test_data))
@@ -414,26 +420,37 @@ train_rf_models <- function(player_data, player_names) {
 
 ```{r include=FALSE}
 # Train Models
+knn_model_data <- train_knn_models(player_data, players)
+models <- knn_model_data$models
+test_data <- knn_model_data$test_data
 
-rf_model_data <- train_rf_models(player_data, players)
-models <- rf_model_data$models
-test_data <- rf_model_data$test_data
 ```
 
 
 ```{r include=FALSE}
 # Evaluate Models
+test_data <- test_data %>%
+  mutate(
+    points = pts,
+    rebounds = treb,
+    assists = ast,
+    total_pra = pts + treb + ast,
+    threepm = fg3m,
+    stl_blk = stl + blk,
+    turnovers = tov,
+    fantasy_score = fpts
+  )
 
 # Function to evaluate models and get predictions
-evaluate_rf_models <- function(models, test_data) {
+evaluate_knn_models <- function(models, test_data) {
   predictions <- list()
 
   # Evaluate and get predictions for each model
   for (model_name in names(models)) {
     model <- models[[model_name]]
 
-    # Get the predictor variables used in the model
-    model_vars <- all.vars(model$call$formula)[-1]  # All vars used for prediction (excluding the target)
+    # Get the predictor variables from the training data (excluding '.outcome')
+    model_vars <- setdiff(colnames(model$trainingData), ".outcome")  # Exclude '.outcome' from predictors
 
     # Ensure that all predictor variables are in the test data
     missing_vars <- setdiff(model_vars, colnames(test_data))
@@ -452,7 +469,7 @@ evaluate_rf_models <- function(models, test_data) {
 }
 
 # Evaluate models and get predictions
-predictions <- evaluate_rf_models(models, test_data)
+predictions <- evaluate_knn_models(models, test_data)
 ```
 
 # Predictions
@@ -535,15 +552,15 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, player_proje
   for (player_name in names(results_by_player)) {
     result <- results_by_player[[player_name]]
     player_result <- glue::glue(
-      "### **Player: {result$player_name}**\n",
-      "**Best Prediction**: {result$best_prediction} | Model: {result$best_model} | Decision: {result$best_decision}\n\n",
+      "### Player: **{result$player_name}**\n",
+      "**Best Prediction**: {result$best_prediction} | Model: {result$best_model} | Decision: **{result$best_decision}**\n\n",
       "<u>All Predictions:</u><br>"
     )
 
     for (prediction in result$all_predictions) {
       player_result <- glue::glue(
         player_result,
-        "Model: **{prediction$model}** | Prediction: {prediction$prediction} | Projection: {prediction$projection} | Threshold: {prediction$final_threshold} | 5-Game Avg: {prediction$five_game_average} | Decision: {prediction$decision}<br>"
+        "Model: **{prediction$model}** | Prediction: {prediction$prediction} | Projection: {prediction$projection} | Threshold: {prediction$final_threshold} | 5-Game Avg: {prediction$five_game_average} | Decision: **{prediction$decision}**<br>"
       )
     }
 

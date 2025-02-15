@@ -21,6 +21,7 @@ library(caret)
 library(randomForest)
 library(glue)
 library(kableExtra)
+library(patchwork)
 library(devtools)
 library(renv)
 
@@ -32,7 +33,7 @@ set.seed(123)
 
 hooplyticsR, a data-driven project, analyzes basketball player performance using advanced statistical techniques and data visualization from the nbastatR package. It provides in-depth insights into player performance variability and trends by analyzing key metrics like points, rebounds, assists, and fantasy scores. The project aims to create an interactive platform for analyzing basketball data, identifying patterns, and supporting decision-making in player evaluation and fantasy basketball. hooplyticsR makes basketball data more accessible and actionable through statistical analysis and powerful visualizations.
 
-```{r warning=FALSE, include=FALSE}
+```{r player data input, warning=FALSE, include=FALSE}
 # Input the names of the NBA players you want to analyze
 players <- c("Stephen Curry", "Jimmy Butler III", "Domantas Sabonis", 
              "Shai Gilgeous-Alexander")
@@ -62,7 +63,7 @@ This section provides a detailed statistical overview of various basketball play
 
 This summary is generated for each player, providing a clear and concise view of their performance and variability over time. The summary can be used to identify trends, strengths, and areas for improvement, and can be easily included in reports or further analysis.
 
-```{r echo=FALSE, results='asis'}
+```{r player stats, echo=FALSE, results='asis'}
 # Function to retrieve the average points per game for a list of players
 get_avg_player_stats <- function(player_names) {
   # Filter the player data to only include the players in the list
@@ -203,7 +204,7 @@ The following table summarizes each player's performance across key metrics, all
 - **Average Turnovers**: The average number of turnovers committed.
 - **Average Fantasy Score**: The player's average fantasy score.
 
-```{r echo=FALSE}
+```{r player performance table, echo=FALSE}
 # Remove SD_* columns
 player_stats_df_no_sd <- player_stats_df %>%
   select(-starts_with("SD_"))
@@ -246,11 +247,9 @@ player_summary_table
 
 This section uses visualizations to highlight key player performance statistics and their variability. It explores the distribution and consistency of metrics like scoring, rebounds, assists, three-pointers, turnovers, and fantasy scores. Examining the overall distribution provides insights into player consistency and overall contributions. The visualizations reveal trends and patterns, helping identify more consistent players and aid data-driven decision-making.
 
-## Total Points Distribution
-
-```{r echo=FALSE}
+```{r plot 1, echo=FALSE}
 # Total Points Distribution Visualization
-player_data %>%
+p1 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = pts, fill = namePlayer)) +
   geom_histogram(binwidth = 5, position = "dodge", color = "black") +
@@ -263,127 +262,127 @@ player_data %>%
   theme(legend.position = "none")
 ```
 
-## Total Rebounds Distribution
-
-```{r echo=FALSE}
+```{r plot 2, echo=FALSE}
 # Total Rebounds Distribution Visualization
-player_data %>%
+p2 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = treb, fill = namePlayer)) +
   geom_histogram(binwidth = 2, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Total Rebounds Distribution",
+  labs(title = "Total Rebounds",
        x = "Total Rebounds",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
-## Total Assists Distribution
-
-```{r echo=FALSE}
+```{r plot 3, echo=FALSE}
 # Total Assists Distribution Visualization
-player_data %>%
+p3 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = ast, fill = namePlayer)) +
   geom_histogram(binwidth = 2, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Total Assists Distribution",
+  labs(title = "Total Assists",
        x = "Total Assists",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
-## Total Points + Rebounds + Assists Distribution
-
-```{r echo=FALSE}
+```{r plot 4, echo=FALSE}
 # Total Points + Rebounds + Assists Distribution Visualization
-player_data %>%
+p4 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = pts + treb + ast, fill = namePlayer)) +
   geom_histogram(binwidth = 5, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Total Points + Rebounds + Assists Distribution",
+  labs(title = "Total Points + Rebounds + Assists",
        x = "Total Points + Rebounds + Assists",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
-## Total Three-Pointers Made Distribution
-
-```{r echo=FALSE}
+```{r plot 5, echo=FALSE}
 # Total Three-Pointers Made Distribution Visualization
-player_data %>%
+p5 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = fg3m, fill = namePlayer)) +
   geom_histogram(binwidth = 1, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Total Three-Pointers Made Distribution",
+  labs(title = "Total Three-Pointers Made",
        x = "Total Three-Pointers Made",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
-## Total Steals + Blocks Distribution
-
-```{r echo=FALSE}
+```{r plot 6, echo=FALSE}
 # Total Steals + Blocks Distribution Visualization
-player_data %>%
+p6 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = stl + blk, fill = namePlayer)) +
   geom_histogram(binwidth = 1, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Total Steals + Blocks Distribution",
+  labs(title = "Total Steals + Blocks",
        x = "Total Steals + Blocks",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
-## Total Turnovers Distribution
-
-```{r echo=FALSE}
+```{r plot 7, echo=FALSE}
 # Total Turnovers Distribution Visualization
-player_data %>%
+p7 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = tov, fill = namePlayer)) +
   geom_histogram(binwidth = 1, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Total Turnovers Distribution",
+  labs(title = "Total Turnovers",
        x = "Total Turnovers",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
-## Total Fantasy Score Distribution
-
-```{r echo=FALSE}
+```{r plot 8, echo=FALSE}
 # Total Fantasy Score Distribution Visualization
-player_data %>%
+p8 <- player_data %>%
   filter(namePlayer %in% players) %>%
   ggplot(aes(x = pts * 1 + treb * 1.2 + ast * 1.5 + stl * 3 + blk * 3 - tov * 1, fill = namePlayer)) +
   geom_histogram(binwidth = 5, position = "dodge", color = "black") +
   facet_wrap(~namePlayer, scales = "free_y", strip.position = "bottom",
              axis.labels = "all_x") +
-  labs(title = "Total Fantasy Score Distribution",
+  labs(title = "Total Fantasy Score",
        x = "Total Fantasy Score",
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
 ```
 
+### Player Performance Distributions
 
-```{r include=FALSE}
+```{r combined_plot, echo=FALSE, fig.height=18, fig.width=24}
+# Arrange the plots in 2 columns
+combined_plot <- (p1 + p2) / (p3 + p4) / (p5 + p6) / (p7 + p8) + 
+  plot_layout(ncol = 2)
+  #plot_annotation(title = "Player Distributions Summary")
+
+# Print the combined plot
+print(combined_plot)
+
+
+```
+
+
+```{r ml models, include=FALSE}
 train_knn_models <- function(player_data, player_names) {
   # Filter and prepare the data: select players and add derived columns
   player_data_filtered <- player_data %>%
@@ -491,7 +490,7 @@ train_knn_models <- function(player_data, player_names) {
 ```
 
 
-```{r include=FALSE}
+```{r train models, include=FALSE}
 # Train the models using player_data and players list
 model_data <- train_knn_models(player_data, players)
 models <- model_data$models
@@ -501,7 +500,7 @@ test_data <- model_data$test_data
 ```
 
 
-```{r include=FALSE}
+```{r evaluate models, include=FALSE}
 # Function to calculate RMSE
 calculate_rmse <- function(predictions, actual_values) {
   sqrt(mean((predictions - actual_values)^2, na.rm = TRUE))
@@ -565,7 +564,7 @@ print(results$rmse)
 
 In this section, we explore machine learning to predict basketball player performance using historical data. We aim to forecast key statistics like points, rebounds, assists, and fantasy scores with precision. These predictions provide valuable insights for fantasy basketball decisions, player evaluation, and team strategies. Whether drafting or analyzing game performance, our data-driven predictions give you a competitive edge.
 
-```{r echo=FALSE, results='asis'}
+```{r model predictions, echo=FALSE, results='asis'}
 make_fantasy_decisions_by_model <- function(predictions, test_data, 
                                               player_projections = NULL, 
                                               player_5_game_averages = NULL, 

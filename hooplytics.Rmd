@@ -18,10 +18,14 @@ library(nbastatR)
 library(ggplot2)
 library(dplyr)
 library(caret)
+library(randomForest)
 library(glue)
 library(kableExtra)
 library(devtools)
 library(renv)
+
+# Set a global seed for reproducibility
+set.seed(123)
 ```
 
 # Introduction
@@ -43,7 +47,7 @@ player_data <- game_logs(seasons = c(2015:2025),
 
 This section provides a detailed statistical overview of various basketball players based on their performance across multiple metrics. For each player, we calculate both average values and standard deviations for key performance indicators such as points, rebounds, assists, and fantasy scores. These calculations allow for an in-depth understanding of a player’s consistency and overall impact on the game.
 
-### Key Statistics Included:
+### Key Statistics Included
 
 1. **Games Played**: The total number of games each player participated in.
 2. **Average Points**: The player’s average points scored per game.
@@ -138,38 +142,51 @@ player_stats_df <- data.frame(get_avg_player_stats(players))
 
 generate_player_summary <- function(player_stats_df) {
   summaries <- apply(player_stats_df, 1, function(row) {
-   glue(
-      "### **{row['Player']}**\n\n",
-      "**Games Played:** {row['Games_Played']}\n\n",
-      "**Average Points:** {row['Points']}  \n",
-      "**Average Rebounds:** {row['Rebounds']}  \n",
-      "**Average Assists:** {row['Assists']}  \n",
-      "**Average Points + Rebounds + Assists (PRA):** {row['Pts_Rebs_Assists']}\n\n",
-      "**Average 3-Point Field Goals Made:** {row['Three_Pts_Made']}  \n",
-      "**Average Steals + Blocks:** {row['Steal_Blocks']}  \n",
-      "**Average Turnovers:** {row['Turnovers']}  \n",
-      "**Average Fantasy Score:** {row['Fantasy_Score']}\n\n",
-      "**Consistency (Standard Deviation):**\n\n",
-      "**Points:** {row['SD_Points']}  \n",
-      "**Rebounds:** {row['SD_Rebounds']}  \n",
-      "**Assists:** {row['SD_Assists']}  \n",
-      "**PRA (Points + Rebounds + Assists):** {row['SD_Pts_Rebs_Assists']}  \n",
-      "**3-Point Field Goals Made:** {row['SD_Three_Pts_Made']}  \n",
-      "**Steals + Blocks:** {row['SD_Steal_Blocks']}  \n",
-      "**Turnovers:** {row['SD_Turnovers']}  \n",
-      "**Fantasy Score:** {row['SD_Fantasy_Score']}\n\n",
-      "*The lower the standard deviation (SD), the more consistent the player is across games.",
-      " A high SD indicates variability, suggesting the player's performance is less predictable.*  \n\n",
-      "*For instance, a low SD in points means the player typically scores within a narrow range",
-      " while a high SD might indicate fluctuating performance.*\n\n----\n\n"
+    glue::glue(
+"### {row['Player']}
+
+<table style='width:100%; border-collapse: collapse;'>
+  <tr>
+    <td style='vertical-align:top; width:50%; border: 1px solid #ddd; padding: 5px;'>
+      <strong>Games Played:</strong> {row['Games_Played']}<br>
+      <strong>Average Points:</strong> {row['Points']}<br>
+      <strong>Average Rebounds:</strong> {row['Rebounds']}<br>
+      <strong>Average Assists:</strong> {row['Assists']}<br>
+      <strong>Average PRA:</strong> {row['Pts_Rebs_Assists']}<br>
+      <strong>Average 3PM:</strong> {row['Three_Pts_Made']}<br>
+      <strong>Average Steals+Blocks:</strong> {row['Steal_Blocks']}<br>
+      <strong>Average Turnovers:</strong> {row['Turnovers']}<br>
+      <strong>Average Fantasy Score:</strong> {row['Fantasy_Score']}<br>
+    </td>
+    <td style='vertical-align:top; width:50%; border: 1px solid #ddd; padding: 5px;'>
+      <strong>Consistency (Standard Deviation):</strong><br>
+      <strong>Points:</strong> {row['SD_Points']}<br>
+      <strong>Rebounds:</strong> {row['SD_Rebounds']}<br>
+      <strong>Assists:</strong> {row['SD_Assists']}<br>
+      <strong>PRA:</strong> {row['SD_Pts_Rebs_Assists']}<br>
+      <strong>3PM:</strong> {row['SD_Three_Pts_Made']}<br>
+      <strong>Steals+Blocks:</strong> {row['SD_Steal_Blocks']}<br>
+      <strong>Turnovers:</strong> {row['SD_Turnovers']}<br>
+      <strong>Fantasy Score:</strong> {row['SD_Fantasy_Score']}<br>
+    </td>
+  </tr>
+</table>
+
+<p><em>The lower the standard deviation (SD), the more consistent the player is across games. A high SD indicates variability, suggesting the player's performance is less predictable.</em></p>
+<p><em>For instance, a low SD in points means the player typically scores within a narrow range, while a high SD might indicate fluctuating performance.</em></p>
+
+----
+"
     )
   })
-
+  
   return(paste(summaries, collapse = "\n\n"))
 }
 
-# Call the function to get the summary output
+# Example usage:
+# Assuming 'player_stats_df' is your data frame with the required columns.
 cat(generate_player_summary(player_stats_df))
+
 ```
 ## Player Performance Table
 
@@ -367,109 +384,181 @@ player_data %>%
 
 
 ```{r include=FALSE}
-# Machine Learning
-
-# Function to train kNN models for each category
 train_knn_models <- function(player_data, player_names) {
-  # Load caret
-  library(caret)
-  
-  # Filter the player data to only include the players in the list
+  # Filter and prepare the data: select players and add derived columns
   player_data_filtered <- player_data %>%
     filter(namePlayer %in% player_names) %>%
     mutate(
-      points = pts,
-      rebounds = treb,
-      assists = ast,
-      total_pra = pts + treb + ast,
-      threepm = fg3m,
-      stl_blk = stl + blk,
-      turnovers = tov,
-      fantasy_score = fpts
-    )
-
-  # Remove rows with missing data
-  player_data_filtered <- na.omit(player_data_filtered)
-
-  # Split data into training and testing sets
-  set.seed(123)
+      points = pts,                 # clarity alias
+      rebounds = treb,              # clarity alias
+      assists = ast,                # clarity alias
+      total_pra = pts + treb + ast, # composite stat
+      threepm = fg3m,               # 3-point makes
+      stl_blk = stl + blk,          # combined defensive stats
+      turnovers = tov,              # turnovers as is
+      fantasy_score = fpts          # fantasy points
+    ) %>%
+    na.omit()
+  
+  # Split data into training and test sets (80/20 split)
   train_index <- createDataPartition(player_data_filtered$pts, p = 0.8, list = FALSE)
   train_data <- player_data_filtered[train_index, ]
   test_data <- player_data_filtered[-train_index, ]
-
-  # Control settings for kNN
-  control <- trainControl(method = "repeatedcv", number = 10, repeats = 5, 
-                          summaryFunction = defaultSummary)
-
-  # Train models for betting categories using kNN
+  
+  # Define control settings for cross-validation
+  control <- trainControl(
+    method = "repeatedcv",
+    number = 5,         # 5-fold CV for speed
+    repeats = 2,        # 2 repeats
+    summaryFunction = defaultSummary,
+    savePredictions = "final",
+    returnResamp = "all",
+    search = "grid",
+    verboseIter = TRUE
+  )
+  
+  # Define a tuning grid for kNN (for models that use kNN)
+  knn_grid <- expand.grid(k = seq(3, 21, by = 1))
+  
+  # Train models:
   models <- list(
-    points_model = train(pts ~ treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
-    rebounds_model = train(treb ~ pts + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
-    assists_model = train(ast ~ pts + treb + stl + blk + tov, data = train_data, method = "knn", trControl = control),
-    total_pra_model = train(total_pra ~ pts + treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
-    threepm_model = train(fg3m ~ pts + treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control),
-    stl_blk_model = train(stl_blk ~ pts + treb + ast + blk + tov, data = train_data, method = "knn", trControl = control),
-    turnovers_model = train(tov ~ pts + treb + ast + stl + blk, data = train_data, method = "knn", trControl = control),
-    fantasy_score_model = train(fantasy_score ~ pts + treb + ast + stl + blk + tov, data = train_data, method = "knn", trControl = control)
+    # Points model: response pts, predictors based on shooting metrics and minutes
+    points_model = train(pts ~ fgm + fg3m + ftm + minutes + pctFG + pctFT, 
+                         data = train_data, 
+                         method = "knn", 
+                         tuneGrid = knn_grid,
+                         preProcess = c("center", "scale"),
+                         trControl = control),
+    
+    # Rebounds model: response treb, predictors: offensive and defensive rebounds, minutes
+    rebounds_model = train(treb ~ oreb + dreb + minutes, 
+                           data = train_data, 
+                           method = "knn", 
+                           tuneGrid = knn_grid,
+                           preProcess = c("center", "scale"),
+                           trControl = control),
+    
+    # Assists model: use random forest for improved performance
+    assists_model = train(ast ~ minutes + pts + plusminus + fga, 
+                          data = train_data, 
+                          method = "rf", 
+                          preProcess = c("center", "scale"),
+                          trControl = control),
+    
+    # Total PRA model: response total_pra, predictors: pts, treb, ast, minutes, plusminus
+    total_pra_model = train(total_pra ~ pts + treb + ast + minutes + plusminus, 
+                            data = train_data, 
+                            method = "knn", 
+                            tuneGrid = knn_grid,
+                            preProcess = c("center", "scale"),
+                            trControl = control),
+    
+    # ThreePM model: response fg3m, predictors: fg3a, minutes, pctFG3
+    threepm_model = train(fg3m ~ fg3a + minutes + pctFG3, 
+                          data = train_data, 
+                          method = "knn", 
+                          tuneGrid = knn_grid,
+                          preProcess = c("center", "scale"),
+                          trControl = control),
+    
+    # Stl+Blk model: response stl_blk, predictors: minutes and plusminus
+    stl_blk_model = train(stl_blk ~ minutes + plusminus, 
+                          data = train_data, 
+                          method = "knn", 
+                          tuneGrid = knn_grid,
+                          preProcess = c("center", "scale"),
+                          trControl = control),
+    
+    # Turnovers model: response tov, predictors: minutes, fga, ast
+    turnovers_model = train(tov ~ minutes + fga + ast, 
+                            data = train_data, 
+                            method = "knn", 
+                            tuneGrid = knn_grid,
+                            preProcess = c("center", "scale"),
+                            trControl = control),
+    
+    # Fantasy Score model: use random forest for improved performance
+    fantasy_score_model = train(fpts ~ pts + treb + ast + stl + blk + tov + minutes + plusminus, 
+                                data = train_data, 
+                                method = "rf", 
+                                preProcess = c("center", "scale"),
+                                trControl = control)
   )
-
-  return(list(models = models, test_data = test_data))
+  
+  return(list(models = models, train_data = train_data, test_data = test_data))
 }
-```
-
-
-```{r include=FALSE}
-# Train Models
-knn_model_data <- train_knn_models(player_data, players)
-models <- knn_model_data$models
-test_data <- knn_model_data$test_data
 
 ```
 
 
 ```{r include=FALSE}
-# Evaluate Models
-test_data <- test_data %>%
-  mutate(
-    points = pts,
-    rebounds = treb,
-    assists = ast,
-    total_pra = pts + treb + ast,
-    threepm = fg3m,
-    stl_blk = stl + blk,
-    turnovers = tov,
-    fantasy_score = fpts
-  )
+# Train the models using player_data and players list
+model_data <- train_knn_models(player_data, players)
+models <- model_data$models
+train_data <- model_data$train_data
+test_data <- model_data$test_data
+
+```
+
+
+```{r include=FALSE}
+# Function to calculate RMSE
+calculate_rmse <- function(predictions, actual_values) {
+  sqrt(mean((predictions - actual_values)^2, na.rm = TRUE))
+}
 
 # Function to evaluate models and get predictions
 evaluate_knn_models <- function(models, test_data) {
   predictions <- list()
-
-  # Evaluate and get predictions for each model
+  
+  # Outcome mapping: model name -> test_data response column
+  outcome_mapping <- list(
+    points_model        = "pts",
+    rebounds_model      = "treb",
+    assists_model       = "ast",
+    total_pra_model     = "total_pra",
+    threepm_model       = "fg3m",
+    stl_blk_model       = "stl_blk",
+    turnovers_model     = "tov",
+    fantasy_score_model = "fpts"
+  )
+  
   for (model_name in names(models)) {
     model <- models[[model_name]]
-
-    # Get the predictor variables from the training data (excluding '.outcome')
-    model_vars <- setdiff(colnames(model$trainingData), ".outcome")  # Exclude '.outcome' from predictors
-
-    # Ensure that all predictor variables are in the test data
+    
+    # Get predictor variables used in the model (excluding .outcome if present)
+    model_vars <- setdiff(colnames(model$trainingData), ".outcome")
+    
+    # Ensure test data contains all these predictors
     missing_vars <- setdiff(model_vars, colnames(test_data))
     if (length(missing_vars) > 0) {
       stop(paste("Test data is missing the following variables:", paste(missing_vars, collapse = ", ")))
     }
-
-    # Subset test data to only include the predictor variables
+    
+    # Subset test data to just the predictor variables
     test_data_with_predictors <- test_data[, model_vars, drop = FALSE]
-
-    # Make predictions for the model
-    predictions[[model_name]] <- predict(model, test_data_with_predictors)
+    
+    # Make predictions
+    preds <- predict(model, test_data_with_predictors)
+    predictions[[model_name]] <- preds
   }
-
-  return(predictions)
+  
+  # Compute RMSE for each model
+  rmse_results <- list()
+  for (model_name in names(predictions)) {
+    outcome_col <- outcome_mapping[[model_name]]
+    actual_values <- test_data[[outcome_col]]
+    rmse_results[[model_name]] <- calculate_rmse(predictions[[model_name]], actual_values)
+  }
+  
+  return(list(predictions = predictions, rmse = rmse_results))
 }
 
-# Evaluate models and get predictions
-predictions <- evaluate_knn_models(models, test_data)
+# Evaluate the models
+results <- evaluate_knn_models(models, test_data)
+predictions <- results$predictions
+print(results$rmse)
+
 ```
 
 # Predictions
@@ -477,7 +566,12 @@ predictions <- evaluate_knn_models(models, test_data)
 In this section, we explore machine learning to predict basketball player performance using historical data. We aim to forecast key statistics like points, rebounds, assists, and fantasy scores with precision. These predictions provide valuable insights for fantasy basketball decisions, player evaluation, and team strategies. Whether drafting or analyzing game performance, our data-driven predictions give you a competitive edge.
 
 ```{r echo=FALSE, results='asis'}
-make_fantasy_decisions_by_model <- function(predictions, test_data, player_projections = NULL, player_5_game_averages = NULL, confidence_margin = 0.1, weight_projection = 0.8, weight_model = 0.2, weight_5_game_avg = 0.7) {
+make_fantasy_decisions_by_model <- function(predictions, test_data, 
+                                              player_projections = NULL, 
+                                              player_5_game_averages = NULL, 
+                                              confidence_margin = 0.1, 
+                                              weight_model = 0.5,       # Weight for model difference
+                                              weight_5_game_avg = 0.2) {  # Weight for 5-game average
   results_by_player <- list()
 
   for (i in 1:nrow(test_data)) {
@@ -488,47 +582,52 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, player_proje
     all_predictions <- list()
 
     for (model_name in names(predictions)) {
-      prediction <- predictions[[model_name]][i]
-
+      prediction <- as.numeric(predictions[[model_name]][i])
+      
+      # Get projection: if available in player_projections, else use mean
       projection <- if (!is.null(player_projections) && 
                         player_name %in% names(player_projections) && 
                         model_name %in% names(player_projections[[player_name]])) {
-        player_projections[[player_name]][[model_name]]
+        as.numeric(player_projections[[player_name]][[model_name]])
       } else {
-        mean(predictions[[model_name]], na.rm = TRUE)
+        as.numeric(mean(predictions[[model_name]], na.rm = TRUE))
       }
-
+      
+      # If 5-game averages available, compute weighted threshold
       if (!is.null(player_5_game_averages) && 
           player_name %in% names(player_5_game_averages) && 
           model_name %in% names(player_5_game_averages[[player_name]])) {
-        five_game_average <- player_5_game_averages[[player_name]][[model_name]]
+        five_game_average <- as.numeric(player_5_game_averages[[player_name]][[model_name]])
         weighted_threshold <- (weight_5_game_avg * five_game_average) + ((1 - weight_5_game_avg) * projection)
       } else {
         five_game_average <- NA
         weighted_threshold <- projection
       }
-
-      final_threshold <- (weight_projection * projection) + (weight_model * weighted_threshold)
+      
+      # New threshold calculation: adjust projection by difference scaled by weight_model
+      final_threshold <- projection + weight_model * (weighted_threshold - projection)
       adjusted_threshold <- final_threshold * (1 + confidence_margin)
+      
       decision <- if (prediction > adjusted_threshold) "More" else "Less"
-
+      
       if (prediction > best_prediction) {
         best_prediction <- prediction
         best_model <- model_name
         best_decision <- decision
       }
-
+      
       all_predictions[[model_name]] <- list(
         model = model_name,
         prediction = round(prediction, 2),
         projection = round(projection, 2),
         weighted_threshold = round(weighted_threshold, 2),
         final_threshold = round(final_threshold, 2),
+        adjusted_threshold = round(adjusted_threshold, 2),
         decision = decision,
         five_game_average = round(five_game_average, 2)
       )
     }
-
+    
     results_by_player[[player_name]] <- list(
       player_name = player_name,
       best_prediction = round(best_prediction, 2),
@@ -537,34 +636,42 @@ make_fantasy_decisions_by_model <- function(predictions, test_data, player_proje
       all_predictions = all_predictions
     )
   }
-
+  
   # Sort results by player name alphabetically
   sorted_player_names <- sort(names(results_by_player))
   sorted_results <- results_by_player[sorted_player_names]
-
-  # Print the sorted results
+  
+  # Print results for each player
   for (player_name in sorted_player_names) {
     result <- sorted_results[[player_name]]
-    player_result <- glue::glue(
-      "### **{result$player_name}**\n",
-      "**Best Prediction**: {result$best_prediction} | Model: {result$best_model} | Decision: **{result$best_decision}**\n\n",
-      "<u>All Predictions:</u><br>"
+    player_result <- paste0(
+      "Player: ", result$player_name, " | Best Prediction: ", result$best_prediction, 
+      " | Best Model: ", result$best_model, " | Decision: ", result$best_decision, "\n"
     )
-
+    
     for (prediction in result$all_predictions) {
-      player_result <- glue::glue(
+      player_result <- paste0(
         player_result,
-        "Model: **{prediction$model}** | Prediction: {prediction$prediction} | Projection: {prediction$projection} | Threshold: {prediction$final_threshold} | 5-Game Avg: {prediction$five_game_average} | Decision: **{prediction$decision}**<br>"
+        "Model: ", prediction$model, 
+        " | Prediction: ", prediction$prediction, 
+        " | Projection: ", prediction$projection, 
+        " | Threshold: ", prediction$final_threshold, 
+        " | Adjusted Threshold: ", prediction$adjusted_threshold, 
+        " | 5-Game Avg: ", prediction$five_game_average, 
+        " | Decision: ", prediction$decision, "\n"
       )
     }
-
-    cat(player_result, "\n\n", sep = "")
+    # cat(player_result, "\n")
   }
+  
+  return(sorted_results)
 }
 
-# Input Player-Specific Projections
+
+# Player-specific projections (numeric values)
+
 player_projections <- list(
- "Shai Gilgeous-Alexander" = list(
+  "Shai Gilgeous-Alexander" = list(
     points_model = 31.5,
     fantasy_score_model = 50.5
   ),
@@ -583,7 +690,8 @@ player_projections <- list(
     fantasy_score_model = 38.5
   )
 )
-# Input Player 5-Game Averages
+
+# Player 5-game averages (numeric values)
 player_5_game_averages <- list(
   "Shai Gilgeous-Alexander" = list(
     points_model = 34.00,
@@ -605,9 +713,45 @@ player_5_game_averages <- list(
   )
 )
 
-# Make fantasy decisions based on the predictions, projections and 5-game averages
-make_fantasy_decisions_by_model(predictions, test_data, player_projections, player_5_game_averages)
+# Generate fantasy decisions
+results <- make_fantasy_decisions_by_model(predictions, test_data, player_projections, player_5_game_averages)
 
-# Write the predictions to a text file
-writeLines(capture.output(make_fantasy_decisions_by_model(predictions, test_data, player_projections)), "data/predictions.txt")
+# Create a summary table for each player with plain text captions and scrollable tables
+player_tables <- lapply(results, function(player) {
+  # Convert the nested 'all_predictions' list into a data frame
+  df <- do.call(rbind, lapply(player$all_predictions, function(pred) {
+    data.frame(
+      Prediction = pred$prediction,
+      Projection = pred$projection,
+      Threshold = pred$final_threshold,
+      Adjusted_Threshold = pred$adjusted_threshold,
+      `5 Game Avg` = pred$five_game_average,
+      Decision = pred$decision,
+      stringsAsFactors = FALSE
+    )
+  }))
+  
+  # Create a caption that includes the player's name and key details
+  caption_text <- paste("Player:", player$player_name, 
+                        "| Best Prediction:", player$best_prediction, 
+                        "| Best Model:", player$best_model, 
+                        "| Decision:", player$best_decision)
+  
+  list(name = player$player_name, caption = caption_text, table = df)
+})
+
+# For each player's result, print a markdown subheading with the player's name,
+# then print the table with the caption (which also includes the player's name).
+for (pt in player_tables) {
+  # Print player's name as a subheading
+  cat("##", pt$name, "\n\n")
+  print(
+    kable(pt$table, format = "html", escape = FALSE, align = "c", caption = pt$caption) %>% 
+      kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) %>%
+      scroll_box(width = "100%", height = "300px")
+  )
+  cat("\n\n")
+}
+
+
 ```

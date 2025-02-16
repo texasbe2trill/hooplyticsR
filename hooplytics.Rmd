@@ -758,7 +758,7 @@ player_tables <- lapply(results, function(player) {
       Projection = pred$projection,
       Threshold = pred$final_threshold,
       Adjusted_Threshold = pred$adjusted_threshold,
-      `5 Game Avg` = pred$five_game_average,
+      Five_Game_Avg = pred$five_game_average,
       Decision = pred$decision,
       stringsAsFactors = FALSE
     )

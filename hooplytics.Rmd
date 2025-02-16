@@ -48,7 +48,7 @@ player_data <- game_logs(seasons = c(2015:2025),
 
 This section provides a detailed statistical overview of various basketball players based on their performance across multiple metrics. For each player, we calculate both average values and standard deviations for key performance indicators such as points, rebounds, assists, and fantasy scores. These calculations allow for an in-depth understanding of a player’s consistency and overall impact on the game.
 
-### Key Statistics Included
+## Key Statistics Included
 
 1. **Games Played**: The total number of games each player participated in.
 2. **Average Points**: The player’s average points scored per game.
@@ -243,9 +243,11 @@ player_summary_table <- generate_player_summary_table(player_stats_df_no_sd)
 player_summary_table
 ```
 
-# Data Visualization
+# Player Performance Visualizations
 
 This section uses visualizations to highlight key player performance statistics and their variability. It explores the distribution and consistency of metrics like scoring, rebounds, assists, three-pointers, turnovers, and fantasy scores. Examining the overall distribution provides insights into player consistency and overall contributions. The visualizations reveal trends and patterns, helping identify more consistent players and aid data-driven decision-making.
+
+## Total Points
 
 ```{r plot 1, echo=FALSE}
 # Total Points Distribution Visualization
@@ -260,7 +262,11 @@ p1 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p1
 ```
+
+## Total Rebounds
 
 ```{r plot 2, echo=FALSE}
 # Total Rebounds Distribution Visualization
@@ -275,7 +281,11 @@ p2 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p2
 ```
+
+## Total Assists
 
 ```{r plot 3, echo=FALSE}
 # Total Assists Distribution Visualization
@@ -290,7 +300,11 @@ p3 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p3
 ```
+
+## Total Points + Rebounds + Assists
 
 ```{r plot 4, echo=FALSE}
 # Total Points + Rebounds + Assists Distribution Visualization
@@ -305,7 +319,11 @@ p4 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p4
 ```
+
+## Total Three-Pointers Made
 
 ```{r plot 5, echo=FALSE}
 # Total Three-Pointers Made Distribution Visualization
@@ -320,7 +338,11 @@ p5 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p5
 ```
+
+## Total Steals + Blocks
 
 ```{r plot 6, echo=FALSE}
 # Total Steals + Blocks Distribution Visualization
@@ -335,7 +357,11 @@ p6 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p6
 ```
+
+## Total Turnovers
 
 ```{r plot 7, echo=FALSE}
 # Total Turnovers Distribution Visualization
@@ -350,7 +376,11 @@ p7 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p7
 ```
+
+## Total Fantasy Score
 
 ```{r plot 8, echo=FALSE}
 # Total Fantasy Score Distribution Visualization
@@ -365,18 +395,22 @@ p8 <- player_data %>%
        y = "Count") +
   theme_minimal() +
   theme(legend.position = "none")
+
+p8
 ```
 
-### Player Performance Distributions
 
-```{r combined_plot, echo=FALSE, fig.height=18, fig.width=24}
-# Arrange the plots in 2 columns
-combined_plot <- (p1 + p2) / (p3 + p4) / (p5 + p6) / (p7 + p8) + 
-  plot_layout(ncol = 2)
-  #plot_annotation(title = "Player Distributions Summary")
-
-# Print the combined plot
-print(combined_plot)
+```{r combined_plot, eval=FALSE, fig.height=10, fig.width=16, include=FALSE, out.width="100%"}
+# # Arrange the plots in 2 columns
+# combined_plot_1 <- (p1 + p2) / (p3 + p4) + 
+#   plot_layout(ncol = 2)
+#   #plot_annotation(title = "Player Distributions Summary")
+# 
+# combined_plot_2 <- (p5 + p6) / (p7 + p8) +
+#   plot_layout(ncol = 2)
+# # Print the combined plot
+# print(combined_plot_1)
+# print(combined_plot_2)
 
 
 ```
@@ -400,7 +434,7 @@ train_knn_models <- function(player_data, player_names) {
     na.omit()
   
   # Split data into training and test sets (80/20 split)
-  train_index <- createDataPartition(player_data_filtered$pts, p = 0.8, list = FALSE)
+  train_index <- createDataPartition(player_data_filtered$fpts, p = 0.8, list = FALSE)
   train_data <- player_data_filtered[train_index, ]
   test_data <- player_data_filtered[-train_index, ]
   

@@ -59,9 +59,10 @@ Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 \* 2))
 
 # Train KNN models for the selected players
 
-knn_model_data <- train_knn_models(player_data, players)
-models <- knn_model_data$models
-test_data <- knn_model_data$test_data
+model_data <- train_knn_models(player_data, players)
+models <- model_data$models
+train_data <- model_data$train_data
+test_data <- model_data$test_data
 
 # Evaluate the trained models
 
@@ -81,14 +82,14 @@ player_projections <- list(
 
 player_5_game_averages <- list(
 
-"Austin Reaves" = list(points_model = round(mean(c(22, 45, 23, 20, 27)), 2)), 
-"Anthony Edwards" = list(points_model = round(mean(c(36, 21, 49, 41, 44)), 2)), 
-"Klay Thompson" = list(points_model = round(mean(c(2, 12, 25, 13, 19)), 2))
+"Austin Reaves" = list(points_model = 27), 
+"Anthony Edwards" = list(points_model = 32),
+"Klay Thompson" = list(points_model = 20)
 
 )
 
-# Make fantasy decisions based on predictions, projections, and 5-game averages
+# Make fantasy decisions based on predictions, test data, projections, and 5-game averages
 
-make_fantasy_decisions_by_model(predictions, test_data,
+results <- make_fantasy_decisions_by_model(predictions, test_data, 
 player_projections, player_5_game_averages)
 ```

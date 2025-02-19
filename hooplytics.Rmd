@@ -184,8 +184,7 @@ generate_player_summary <- function(player_stats_df) {
   return(paste(summaries, collapse = "\n\n"))
 }
 
-# Example usage:
-# Assuming 'player_stats_df' is your data frame with the required columns.
+# Show the player summary
 cat(generate_player_summary(player_stats_df))
 
 ```
@@ -397,22 +396,6 @@ p8 <- player_data %>%
   theme(legend.position = "none")
 
 p8
-```
-
-
-```{r combined_plot, eval=FALSE, fig.height=10, fig.width=16, include=FALSE, out.width="100%"}
-# # Arrange the plots in 2 columns
-# combined_plot_1 <- (p1 + p2) / (p3 + p4) + 
-#   plot_layout(ncol = 2)
-#   #plot_annotation(title = "Player Distributions Summary")
-# 
-# combined_plot_2 <- (p5 + p6) / (p7 + p8) +
-#   plot_layout(ncol = 2)
-# # Print the combined plot
-# print(combined_plot_1)
-# print(combined_plot_2)
-
-
 ```
 
 
@@ -764,7 +747,7 @@ player_tables <- lapply(results, function(player) {
     )
   }))
   
-  # Create a caption that includes the player's name and key details
+  # Creates a caption that includes the player's name and key details
   caption_text <- paste("Player:", player$player_name, 
                         "| Best Prediction:", player$best_prediction, 
                         "| Best Model:", player$best_model, 
@@ -773,8 +756,7 @@ player_tables <- lapply(results, function(player) {
   list(name = player$player_name, caption = caption_text, table = df)
 })
 
-# For each player's result, print a markdown subheading with the player's name,
-# then print the table with the caption (which also includes the player's name).
+# Format the kable tables for each player
 for (pt in player_tables) {
   # Print player's name as a subheading
   cat("##", pt$name, "\n\n")

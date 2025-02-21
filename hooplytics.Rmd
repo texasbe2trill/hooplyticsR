@@ -35,8 +35,8 @@ hooplyticsR, a data-driven project, analyzes basketball player performance using
 
 ```{r player data input, warning=FALSE, include=FALSE}
 # Input the names of the NBA players you want to analyze
-players <- c("Stephen Curry", "Jimmy Butler III", "Domantas Sabonis", 
-             "Shai Gilgeous-Alexander")
+players <- c("Anthony Edwards", "Giannis Antetokounmpo", "Desmond Bane", 
+             "Walker Kessler", "Amen Thompson", "Karl-Anthony Towns")
 
 # Get player data from the past 10 seasons
 player_data <- game_logs(seasons = c(2015:2025),
@@ -687,45 +687,67 @@ make_fantasy_decisions_by_model <- function(predictions, test_data,
 # Player-specific projections (numeric values)
 
 player_projections <- list(
-  "Shai Gilgeous-Alexander" = list(
-    points_model = 31.5,
-    fantasy_score_model = 50.5
+  "Desmond Bane" = list(
+    points_model = 18.5,
+    fantasy_score_model = 35,
+    total_pra_model = 30
   ),
-  "Stephen Curry" = list(
+  "Anthony Edwards" = list(
+    points_model = 28.5,
+    total_pra_model = 40.5,
+    fantasy_score_model = 46.5
+  ),
+  "Giannis Antetokounmpo" = list(
+    points_model = 28.5,
+    total_pra_model = 45.5
+  ),
+  "Walker Kessler" = list(
+    points_model = 10.5,
+    total_pra_model = 22.5,
+    fantasy_score_model = 30.5
+  ),
+  "Amen Thompson" = list(
+    points_model = 15.5,
+    total_pra_model = 29.5,
+    fantasy_score_model = 42
+  ),
+  "Karl-Anthony Towns" = list(
     points_model = 24.5,
-    total_pra_model = 35,
-    fantasy_score_model = 39
-  ),
-  "Domantas Sabonis" = list(
-    rebounds_model = 11.5,
-    fantasy_score_model = 46
-  ),
-  "Jimmy Butler III" = list(
-    points_model = 19.5,
-    stl_blk_model = 1.5,
-    fantasy_score_model = 38.5
+    total_pra_model = 42,
+    fantasy_score_model = 48
   )
 )
 
 # Player 5-game averages (numeric values)
 player_5_game_averages <- list(
-  "Shai Gilgeous-Alexander" = list(
-    points_model = 34.00,
-    fantasy_score_model = 53.52
+   "Desmond Bane" = list(
+    points_model = 21.60,
+    fantasy_score_model = 37.62,
+    total_pra_model = 33.80
   ),
-  "Stephen Curry" = list(
-    points_model = 33.20,
-    total_pra_model = 43.60,
-    fantasy_score_model = 47.62
+  "Anthony Edwards" = list(
+    points_model = 37.00,
+    total_pra_model = 48.40,
+    fantasy_score_model = 53.34
   ),
-  "Domantas Sabonis" = list(
-    rebounds_model = 15.00,
-    fantasy_score_model = 42.20
+   "Giannis Antetokounmpo" = list(
+    points_model = 32.40,
+    total_pra_model = 50.80
   ),
-  "Jimmy Butler III" = list(
-    points_model = 17.40,
-    stl_blk_model = 1.80,
-    fantasy_score_model = 37.48
+  "Walker Kessler" = list(
+    points_model = 14.40,
+    total_pra_model = 31.00,
+    fantasy_score_model = 44.52
+  ),
+  "Amen Thompson" = list(
+    points_model = 9.00,
+    total_pra_model = 21.40,
+    fantasy_score_model = 9.00
+  ),
+  "Karl-Anthony Towns" = list(
+    points_model = 26.20,
+    total_pra_model = 38.80,
+    fantasy_score_model = 44.38
   )
 )
 

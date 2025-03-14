@@ -35,8 +35,7 @@ hooplyticsR, a data-driven project, analyzes basketball player performance using
 
 ```{r player data input, warning=FALSE, include=FALSE}
 # Input the names of the NBA players you want to analyze
-players <- c("Anthony Edwards", "Giannis Antetokounmpo", "Desmond Bane", 
-             "Walker Kessler", "Amen Thompson", "Karl-Anthony Towns")
+players <- c("Klay Thompson", "Dillon Brooks", "Ja Morant")
 
 # Get player data from the past 10 seasons
 player_data <- game_logs(seasons = c(2015:2025),
@@ -687,68 +686,56 @@ make_fantasy_decisions_by_model <- function(predictions, test_data,
 # Player-specific projections (numeric values)
 
 player_projections <- list(
-  "Desmond Bane" = list(
-    points_model = 18.5,
-    fantasy_score_model = 35,
-    total_pra_model = 30
+  "Klay Thompson" = list(
+    points_model = 16.5,
+    fantasy_score_model = 27.5,
+    total_pra_model = 23.5,
+    threepm_model = 2.5,
+    assists_model = 3.5
+    
   ),
-  "Anthony Edwards" = list(
-    points_model = 28.5,
-    total_pra_model = 40.5,
-    fantasy_score_model = 46.5
+  "Dillon Brooks" = list(
+    points_model = 9.5,
+    fantasy_score_model = 22.5,
+    total_pra_model = 19.5,
+    threepm_model = 1.5,
+    assists_model = 1.5
   ),
-  "Giannis Antetokounmpo" = list(
-    points_model = 28.5,
-    total_pra_model = 45.5
-  ),
-  "Walker Kessler" = list(
-    points_model = 10.5,
-    total_pra_model = 22.5,
-    fantasy_score_model = 30.5
-  ),
-  "Amen Thompson" = list(
-    points_model = 15.5,
+  "Ja Morant" = list(
+    points_model = 17.5,
+    fantasy_score_model = 40,
     total_pra_model = 29.5,
-    fantasy_score_model = 42
-  ),
-  "Karl-Anthony Towns" = list(
-    points_model = 24.5,
-    total_pra_model = 42,
-    fantasy_score_model = 48
-  )
+    threepm_model = 2.5,
+    assists_model = 5.5
+
+)
 )
 
 # Player 5-game averages (numeric values)
 player_5_game_averages <- list(
-   "Desmond Bane" = list(
-    points_model = 21.60,
-    fantasy_score_model = 37.62,
-    total_pra_model = 33.80
+  "Klay Thompson" = list(
+    points_model = 21.4,
+    fantasy_score_model = 33.7,
+    total_pra_model = 29,
+    threepm_model = 3.8,
+    assists_model = 3.8
+    
   ),
-  "Anthony Edwards" = list(
-    points_model = 37.00,
-    total_pra_model = 48.40,
-    fantasy_score_model = 53.34
+  "Dillon Brooks" = list(
+    points_model = 18,
+    fantasy_score_model = 26.0,
+    total_pra_model = 23.6,
+    threepm_model = 3,
+    assists_model = 2.2
   ),
-   "Giannis Antetokounmpo" = list(
-    points_model = 32.40,
-    total_pra_model = 50.80
-  ),
-  "Walker Kessler" = list(
-    points_model = 14.40,
-    total_pra_model = 31.00,
-    fantasy_score_model = 44.52
-  ),
-  "Amen Thompson" = list(
-    points_model = 9.00,
-    total_pra_model = 21.40,
-    fantasy_score_model = 9.00
-  ),
-  "Karl-Anthony Towns" = list(
-    points_model = 26.20,
-    total_pra_model = 38.80,
-    fantasy_score_model = 44.38
-  )
+  "Ja Morant" = list(
+    points_model = 28.8,
+    fantasy_score_model = 45.3,
+    total_pra_model = 39.8,
+    threepm_model = 2.2,
+    assists_model = 7.8
+
+)
 )
 
 # Generate fantasy decisions

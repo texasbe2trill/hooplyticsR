@@ -1,5 +1,8 @@
 # hooplyticsR: Basketball Metrics Analysis Using kNN
 
+> **Looking for the Python version?**
+> This project has been ported to Python as [**🏀 Hooplytics**](https://github.com/texasbe2trill/hooplytics) — a Jupyter notebook with modern ML (scikit-learn), interactive Plotly charts, live sportsbook validation via The Odds API, and a simpler one-dictionary interface. If you're starting fresh, the Python port is the recommended way to use Hooplytics.
+
 ## Overview
 
 **hooplyticsR** is a basketball analytics project focused on predicting various player performance metrics using machine learning techniques. The project utilizes the `caret` package in R, applying k-Nearest Neighbors (kNN) regression models to forecast key basketball statistics such as points, rebounds, assists, and fantasy scores.
